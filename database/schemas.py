@@ -9,3 +9,7 @@ class UserResponse(BaseModel):
     id: str
     username: str
     role: str
+
+
+class UserUpdate(BaseModel):
+    password: str
