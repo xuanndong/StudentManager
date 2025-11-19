@@ -5,7 +5,7 @@ from datetime import datetime
 from dotenv import load_dotenv
 import os
 
-from app.model.mpost import PostCreate, PostResponse, CommentCreate
+from app.model.mpost import PostCreate, PostResponse, CommentCreate, PostUpdate
 from app.dependencies import get_current_user
 
 # Load .env file
@@ -177,3 +177,99 @@ async def add_comment(
     updated_post["_id"] = str(updated_post["_id"])
     
     return updated_post
+
+
+@router.get('/{post_id}', response_model=PostResponse)
+async def get_post_detail(
+    post_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+) -> PostResponse:
+    db: AsyncDatabase = request.app.state.db
+    if not ObjectId.is_valid(post_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Post ID")
+
+    post = await db.posts.find_one({'_id': ObjectId(post_id)})
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+    
+    # Check quyền truy cập lớp chứa bài viết
+    user_id = None
+    if current_user['role'] == "CVHT":
+        user_id = str(current_user["_id"])
+    else:
+        user_id = str(current_user['mssv'])
+
+    await check_class_menbership(db, post['class_id'], user_id)
+
+    post['_id'] = str(post['_id'])
+    return post
+
+
+@router.put("/{post_id}", response_model=PostResponse)
+async def update_post(
+    post_id: str,
+    post_in: PostUpdate,
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    db: AsyncDatabase = request.app.state.db
+    user_id = str(current_user["_id"])
+    
+    if not ObjectId.is_valid(post_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid post ID")
+
+    # Tìm bài viết
+    post = await db.posts.find_one({"_id": ObjectId(post_id)})
+    if not post:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
+        
+    # Chỉ cho phép tác giả sửa
+    if post["author_id"] != user_id:
+        raise HTTPException(status_code=403, detail="You can only edit your own posts")
+
+    await db.posts.update_one(
+        {"_id": ObjectId(post_id)},
+        {
+            "$set": {
+                "content": post_in.content,
+                "updated_at": datetime.now()
+            }
+        }
+    )
+    
+    updated_post = await db.posts.find_one({"_id": ObjectId(post_id)})
+    updated_post["_id"] = str(updated_post["_id"])
+    return updated_post
+
+
+@router.delete("/{post_id}")
+async def delete_post(
+    post_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    db: AsyncDatabase = request.app.state.db
+    user_id = str(current_user["_id"])
+    role = current_user.get("role")
+    
+    if not ObjectId.is_valid(post_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Post ID")
+
+    post = await db.posts.find_one({"_id": ObjectId(post_id)})
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+        
+    # Check quyền: Tác giả hoặc CVHT của lớp đó hoặc Admin mới được xóa
+    # Lấy thông tin lớp để check xem user có phải CVHT không
+    class_obj = await db.classes.find_one({"_id": ObjectId(post["class_id"])})
+    
+    is_author = post["author_id"] == user_id
+    is_advisor = class_obj and class_obj["advisor_id"] == user_id
+    is_admin = role == "ADMIN"
+
+    if not (is_author or is_advisor or is_admin):
+        raise HTTPException(status_code=403, detail="Permission denied")
+
+    await db.posts.delete_one({"_id": ObjectId(post_id)})
+    return {"message": "Post deleted"}

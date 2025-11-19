@@ -163,3 +163,50 @@ async def get_class_students(
     
     return students
 
+
+@router.get('/{class_id}', response_model=ClassResponse)
+async def get_class_detail(
+    class_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    db: AsyncDatabase = request.app.state.db
+    if not ObjectId.is_valid(class_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid class ID")
+    
+    class_obj = await db.classes.find_one({"_id": ObjectId(class_id)})
+    if not class_obj:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Class not found")
+    
+    class_obj["_id"] = str(class_obj["_id"])
+    return class_obj
+
+
+@router.delete("/{class_id}/students/{student_mssv}")
+async def remove_student_from_class(
+    class_id: str,
+    student_mssv: str,
+    request: Request,
+    current_user: dict = Depends(get_current_cvht)
+):
+    db: AsyncDatabase = request.app.state.db
+
+    # Kiểm tra quyền sở hữu
+    class_chk = await db.classes.find_one({
+        "_id": ObjectId(class_id),
+        "advisor_id": str(current_user["_id"])
+    })
+
+    if not class_chk:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied or Class not found")
+    
+    # Dùng $pull xóa phần tử khỏi mảng
+    result = await db.classes.update_one({
+        {"_id": ObjectId(class_id)},
+        {"$pull": {"student_ids": student_mssv}}
+    })
+
+    if result.modified_count == 0:
+        return {"message": "Student not found in class or already removed"}
+    
+    return {"message": f"Student {student_mssv} removed from class"}

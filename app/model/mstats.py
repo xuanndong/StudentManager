@@ -14,3 +14,21 @@ class DashboardStats(BaseModel):
     warning_count: int = 0
     debt_count: int = 0
     gpa_distribution: GPADistribution
+
+    model_config = {
+        "populate_by_name": True,
+        "from_attributes": True,
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "class_id": "",
+                    "semester": "",
+                    "total_students": 0,
+                    "warning_count": 0,
+                    "debt_count": 0,
+                    "gpa_distribution": 0
+                }
+            ]
+        }
+    }
+

@@ -19,6 +19,9 @@ class PostBase(BaseModel):
 class PostCreate(PostBase):
     pass 
 
+class PostUpdate(BaseModel):
+    content: str
+
 class PostResponse(PostBase):
     id: str = Field(..., alias="_id")
     class_id: str

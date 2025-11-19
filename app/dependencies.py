@@ -41,3 +41,13 @@ async def get_current_cvht(current_user: dict = Depends(get_current_user)):
         )
     
     return current_user
+
+
+async def get_current_admin(current_user: dict = Depends(get_current_user)):
+    role = current_user.get("role")
+    if role != "ADMIN":
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Permission denied. Admin access required."
+        )
+    return current_user

@@ -174,3 +174,29 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
     except WebSocketDisconnect:
         manager.disconnect(user_id)
         print(f"User {user_id} disconnected from Chat")
+
+
+
+@router.get("/conversations/{conversation_id}", response_model=ConversationResponse)
+async def get_conversation_detail(
+    conversation_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    db: AsyncDatabase = request.app.state.db
+    user_id = str(current_user["_id"])
+    
+    if not ObjectId.is_valid(conversation_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid ID")
+        
+    conv = await db.conversations.find_one({"_id": ObjectId(conversation_id)})
+    
+    if not conv:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Conversation not found")
+        
+    # Check xem user có trong cuộc hội thoại không
+    if user_id not in conv["participants"]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Access denied")
+        
+    conv["_id"] = str(conv["_id"])
+    return conv
