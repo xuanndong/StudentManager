@@ -1,0 +1,11 @@
+fastapi==0.109.0
+uvicorn==0.27.0
+pymongo==4.6.1           # Tương thích tốt v4.15.3
+python-dotenv==1.0.1
+pydantic==2.6.0
+pydantic[email]
+passlib[bcrypt]==1.7.4   # Cho Req 1 (Hash password)
+python-jose[cryptography]==3.3.0 # Cho Req 1 (JWT Token)
+python-multipart==0.0.6  # Để nhận form data (nếu cần)
+pandas==2.2.0            # Để xử lý CSV/Excel (Req 3, 6)
+openpyxl==3.1.2          # Hỗ trợ Excel
