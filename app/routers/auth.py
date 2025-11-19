@@ -43,7 +43,7 @@ async def login(request: Request, response: Response, user_login: UserLogin) -> 
     if not user or not verify_password(user_login.password, user["password"]):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Sai mssv hoặc password",
+            detail="Wrong student code or password",
             headers={"WWW-Authenticate": "Bearer"}
         )
     

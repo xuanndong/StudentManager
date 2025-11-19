@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, Request, status, HTTPException
 from pymongo.asynchronous.database import AsyncDatabase
+from bson import ObjectId
 from dotenv import load_dotenv
 import os
 
@@ -39,15 +40,15 @@ async def get_all_users(
     return users
 
  
-@router.get('/{user_mssv}', response_model=UserResponse)
+@router.get('/{user_id}', response_model=UserResponse)
 async def get_user_by_id(
-    user_mssv: str,
+    user_id: str,
     request: Request,
     current_user: dict = Depends(get_current_admin)
 ):
     db: AsyncDatabase = request.app.state.db
 
-    user = await db.users.find_one({"mssv": user_mssv})
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
@@ -56,9 +57,9 @@ async def get_user_by_id(
     return user
 
 
-@router.put('/{user_mssv}', response_model=UserResponse)
+@router.put('/{user_id}', response_model=UserResponse)
 async def update_user(
-    user_mssv: str,
+    user_id: str,
     user_data: dict,
     request: Request,
     current_user: dict = Depends(get_current_admin)
@@ -68,28 +69,28 @@ async def update_user(
     if "mssv" in user_data: del user_data["mssv"]
 
     result = await db.users.update_one(
-        {"mssv": user_mssv},
+        {"_id": ObjectId(user_id)},
         {"$set": user_data}
     )
 
     if result.matched_count == 0:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
-    updated_user = await db.users.find_one({'mssv': user_mssv})
+    updated_user = await db.users.find_one({'_id': ObjectId(user_id)})
     updated_user['_id'] = str(updated_user['_id'])
     return updated_user
 
 
-@router.delete("/{user_mssv}")
+@router.delete("/{user_id}")
 async def delete_user(
-    user_mssv: str,
+    user_id: str,
     request: Request,
     current_user: dict = Depends(get_current_admin)
 ):
     db: AsyncDatabase = request.app.state.db
-    result = await db.users.delete_one({"_id": user_mssv})
+    result = await db.users.delete_one({"_id": ObjectId(user_id)})
     
     if result.deleted_count == 0:
         raise HTTPException(status_code=404, detail="User not found")
         
-    return {"message": f"User {user_mssv} has been deleted"}
+    return {"message": f"User {user_id} has been deleted"}

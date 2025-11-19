@@ -5,6 +5,8 @@ from src.views.classes_view import ClassesView
 from src.views.grades_view import GradesView
 from src.views.chat_view import ChatView
 from src.views.forum_view import ForumView
+from src.views.users_view import UsersView
+from src.views.stats_view import StatsView
 from src.api.client import api
 
 class MainView(ctk.CTkFrame):
@@ -67,26 +69,27 @@ class MainView(ctk.CTkFrame):
             "classes": "My Classes",
             "grades": "Academic Performance",
             "chat": "Messages",
-            "stats": "Statistics"
+            "forum": "Class Forum",
+            "stats": "Class Statistics",
+            "users": "User Management"
         }
         self.lbl_title.configure(text=titles.get(view_key, "Dashboard"))
 
         # --- LOGIC LOAD VIEW ---
         if view_key == "dashboard":
             DashboardView(self.view_area).pack(fill="both", expand=True)
-            
         elif view_key == "classes":
-            # Load ClassesView
             ClassesView(self.view_area).pack(fill="both", expand=True)
         elif view_key == "grades":
-            # Load GradesView
             GradesView(self.view_area).pack(fill="both", expand=True)
         elif view_key == "forum":
-            # Load ForumView
             ForumView(self.view_area).pack(fill="both", expand=True)
         elif view_key == "chat":
-            # Load ChatView
             ChatView(self.view_area).pack(fill="both", expand=True)
+        elif view_key == "stats":
+            StatsView(self.view_area).pack(fill="both", expand=True)
+        elif view_key == "users":
+            UsersView(self.view_area).pack(fill="both", expand=True)
         else:
             # Các màn hình chưa làm -> Hiện Placeholder
             placeholder = ctk.CTkFrame(self.view_area, fg_color="white", corner_radius=15)

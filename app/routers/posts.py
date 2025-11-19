@@ -39,12 +39,8 @@ async def create_post(
     current_user: dict = Depends(get_current_user)
 ) -> PostResponse:
     db: AsyncDatabase = request.app.state.db
-    user_id = None
-    if current_user['role'] == "CVHT":
-        user_id = str(current_user["_id"])
-    else:
-        user_id = str(current_user['mssv'])
 
+    user_id = str(current_user["_id"])
     await check_class_menbership(db, class_id, user_id)
 
     post_dict = post_in.model_dump()
@@ -72,14 +68,9 @@ async def get_class_posts(
     current_user: dict = Depends(get_current_user)
 ):
     db: AsyncDatabase = request.app.state.db
-    user_id = None
-    if current_user['role'] == "CVHT":
-        user_id = str(current_user["_id"])
-    else:
-        user_id = str(current_user['mssv'])
 
+    user_id = str(current_user["_id"])
     await check_class_menbership(db, class_id, user_id)
-
     
     # Lấy bài viết, sắp xếp mới nhất lên đầu (-1)
     posts = await db.posts.find({"class_id": class_id}).sort("created_at", -1).to_list(length=100) # Giới hạn 100 bài gần nhất
@@ -108,13 +99,8 @@ async def toggle_like(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
         
     # Check xem user có thuộc lớp chứa bài viết này không
-    user_id = None
-    if current_user['role'] == "CVHT":
-        user_id = str(current_user["_id"])
-    else:
-        user_id = str(current_user['mssv'])
-
-    await check_class_menbership(db, post["class_id"], user_id)
+    user_id = str(current_user["_id"])
+    await check_class_menbership(db, post['class_id'], user_id)
 
     # Logic Toggle Like
     if user_id in post["likes"]:
@@ -151,13 +137,8 @@ async def add_comment(
     if not post:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
 
-    user_id = None
-    if current_user['role'] == "CVHT":
-        user_id = str(current_user["_id"])
-    else:
-        user_id = str(current_user['mssv'])
-
-    await check_class_menbership(db, post["class_id"], user_id)
+    user_id = str(current_user["_id"])
+    await check_class_menbership(db, post['class_id'], user_id)
 
     # Tạo object comment
     new_comment = {
@@ -194,12 +175,7 @@ async def get_post_detail(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Post not found")
     
     # Check quyền truy cập lớp chứa bài viết
-    user_id = None
-    if current_user['role'] == "CVHT":
-        user_id = str(current_user["_id"])
-    else:
-        user_id = str(current_user['mssv'])
-
+    user_id = str(current_user["_id"])
     await check_class_menbership(db, post['class_id'], user_id)
 
     post['_id'] = str(post['_id'])
@@ -250,6 +226,7 @@ async def delete_post(
     current_user: dict = Depends(get_current_user)
 ):
     db: AsyncDatabase = request.app.state.db
+
     user_id = str(current_user["_id"])
     role = current_user.get("role")
     

@@ -45,7 +45,7 @@ async def get_my_classes(request: Request, current_user: dict = Depends(get_curr
     if current_user.get('role') == "CVHT":
         filter_query = {'advisor_id': str(current_user['_id'])}
     else:
-        filter_query = {"student_ids": current_user["mssv"]}
+        filter_query = {"student_ids": str(current_user["_id"])}
 
     class_dict = await db.classes.find(filter_query).to_list(length=None)
 
@@ -84,7 +84,7 @@ async def import_students(
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Could not parse file: {str(e)}")
     
 
-    imported_mssvs = []
+    imported_users = []
     errors = []
 
     # Chuẩn hóa tên cột về chữ thường để dễ xử lý 
@@ -110,20 +110,20 @@ async def import_students(
             user = await db.users.find_one({'mssv': val})
 
         if user:
-            imported_mssvs.append(user['mssv'])
+            imported_users.append(str(user['_id']))
         else:
             errors.append(f"Row {index+2}: User {val} not found in system")
 
     # Update in DB
-    if imported_mssvs:
+    if imported_users:
         await db.classes.update_one(
             {"_id": ObjectId(class_id)},
-            {"$addToSet": {"student_ids": {"$each": imported_mssvs}}}
+            {"$addToSet": {"student_ids": {"$each": imported_users}}}
         )
 
     return {
         "message": "Import process completed",
-        "added_count": len(imported_mssvs),
+        "added_count": len(imported_users),
         "errors": errors # Trả về danh sách lỗi để CVHT biết ai chưa được thêm
     }
 
@@ -144,19 +144,17 @@ async def get_class_students(
     if not class_obj:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Class not found")
     
-    # Kiểm tra quyền: User phải là CVHT của lớp HOẶC là thành viên của lớp
-    user_id = None
-    mssv_student = None
-    if current_user.get('role') == "CVHT":
-        user_id = str(current_user["_id"])
-    else:
-        mssv_student = str(current_user['mssv'])
-    
-    if user_id != class_obj["advisor_id"] and mssv_student not in class_obj["student_ids"]:
+    # Kiểm tra quyền: User phải là CVHT của lớp hoặc là thành viên của lớp
+    user_id = str(current_user["_id"])
+
+    if user_id != class_obj["advisor_id"] and user_id not in class_obj["student_ids"]:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="You are not a menber of this class")
     
     student_ids = class_obj.get("student_ids", [])
-    students = await db.users.find({"mssv": {"$in": student_ids}}).to_list(length=None)
+    if student_ids:
+        student_obj_ids = [ObjectId(id_str) for id_str in student_ids]
+
+    students = await db.users.find({"_id": {"$in": student_obj_ids}}).to_list(length=None)
 
     for s in students:
         s["_id"] = str(s["_id"])
@@ -201,10 +199,10 @@ async def remove_student_from_class(
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Permission denied or Class not found")
     
     # Dùng $pull xóa phần tử khỏi mảng
-    result = await db.classes.update_one({
+    result = await db.classes.update_one(
         {"_id": ObjectId(class_id)},
         {"$pull": {"student_ids": student_mssv}}
-    })
+    )
 
     if result.modified_count == 0:
         return {"message": "Student not found in class or already removed"}

@@ -1,157 +1,339 @@
 import customtkinter as ctk
 from src.api.client import api
 import threading
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 
 class ClassesView(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master, fg_color="transparent")
+        self.FONT = "DejaVu Sans"
         
-        # Font
-        self.FONT_FAMILY = "DejaVu Sans"
-
-        # --- 1. HEADER (Tiêu đề + Nút Tạo lớp) ---
-        self.header_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.header_frame.pack(fill="x", pady=(0, 20))
-
-        self.lbl_title = ctk.CTkLabel(self.header_frame, text="My Classes", 
-                                      font=(self.FONT_FAMILY, 24, "bold"), text_color="#334155")
-        self.lbl_title.pack(side="left")
-
-        # Chỉ hiện nút "Create Class" nếu là CVHT
-        user_role = api.user_info.get("role", "STUDENT")
-        if user_role == "CVHT":
-            self.btn_create = ctk.CTkButton(self.header_frame, text="+ Create Class", 
-                                            font=(self.FONT_FAMILY, 14, "bold"),
-                                            fg_color="#3B82F6", hover_color="#2563EB",
-                                            height=40, corner_radius=8,
-                                            command=self.open_create_dialog)
-            self.btn_create.pack(side="right")
-
-        # --- 2. CONTENT AREA (Scrollable Grid) ---
-        self.scroll_frame = ctk.CTkScrollableFrame(self, fg_color="transparent", corner_radius=0)
-        self.scroll_frame.pack(fill="both", expand=True)
+        # Modern header with gradient
+        self.create_header()
         
-        # Cấu hình Grid cho các thẻ (3 cột)
-        self.scroll_frame.grid_columnconfigure(0, weight=1)
-        self.scroll_frame.grid_columnconfigure(1, weight=1)
-        self.scroll_frame.grid_columnconfigure(2, weight=1)
+        # Grid layout for cards
+        self.scroll = ctk.CTkScrollableFrame(self, fg_color="transparent", 
+                                            scrollbar_button_color="#CBD5E1")
+        self.scroll.pack(fill="both", expand=True, pady=10)
+        self.scroll.grid_columnconfigure((0,1,2), weight=1)
+        
+        # Loading state
+        self.loading_frame = ctk.CTkFrame(self.scroll, fg_color="white", corner_radius=16,
+                                         border_width=1, border_color="#E2E8F0")
+        self.loading_frame.grid(row=0, column=0, columnspan=3, sticky="ew", padx=15, pady=20)
+        
+        ctk.CTkLabel(self.loading_frame, text="⏳", font=(self.FONT, 32)).pack(pady=(30, 10))
+        ctk.CTkLabel(self.loading_frame, text="Loading your classes...", 
+                    font=(self.FONT, 14), text_color="#64748B").pack(pady=(0, 30))
+        
+        threading.Thread(target=self.load).start()
 
-        self.loading_lbl = ctk.CTkLabel(self.scroll_frame, text="Loading classes...", text_color="gray")
-        self.loading_lbl.grid(row=0, column=1, pady=20)
+    def create_header(self):
+        """Modern header with actions"""
+        header = ctk.CTkFrame(self, fg_color="white", corner_radius=16, 
+                             border_width=1, border_color="#E2E8F0")
+        header.pack(fill="x", padx=15, pady=(0, 20))
+        
+        # Gradient accent
+        ctk.CTkFrame(header, height=4, fg_color="#6366F1", corner_radius=16).pack(fill="x")
+        
+        content = ctk.CTkFrame(header, fg_color="transparent")
+        content.pack(fill="x", padx=25, pady=20)
+        
+        # Title with icon
+        title_frame = ctk.CTkFrame(content, fg_color="transparent")
+        title_frame.pack(side="left")
+        
+        ctk.CTkLabel(title_frame, text="🎓", font=(self.FONT, 28)).pack(side="left", padx=(0, 10))
+        ctk.CTkLabel(title_frame, text="My Classes", font=(self.FONT, 24, "bold"), 
+                    text_color="#1E293B").pack(side="left")
+        
+        # Action button for CVHT
+        if api.user_info.get("role") == "CVHT":
+            btn = ctk.CTkButton(content, text="+ Create New Class", 
+                               font=(self.FONT, 14, "bold"),
+                               fg_color="#6366F1", hover_color="#4F46E5",
+                               corner_radius=10, height=40,
+                               command=self.popup_create)
+            btn.pack(side="right")
 
-        # Load data
-        threading.Thread(target=self.load_classes).start()
+    def load(self):
+        data = api.get_my_classes()
+        self.after(0, lambda: self.render(data))
 
-    def load_classes(self):
-        classes = api.get_my_classes()
-        self.after(0, lambda: self.render_classes(classes))
-
-    def render_classes(self, classes):
-        self.loading_lbl.destroy()
+    def render(self, classes):
+        self.loading_frame.destroy()
         
         if not classes:
-            ctk.CTkLabel(self.scroll_frame, text="No classes found.", 
-                         font=(self.FONT_FAMILY, 16)).grid(row=0, column=1, pady=20)
+            # Empty state
+            empty = ctk.CTkFrame(self.scroll, fg_color="white", corner_radius=16,
+                                border_width=1, border_color="#E2E8F0")
+            empty.grid(row=0, column=0, columnspan=3, sticky="ew", padx=15, pady=20)
+            
+            ctk.CTkLabel(empty, text="📚", font=(self.FONT, 48)).pack(pady=(40, 10))
+            ctk.CTkLabel(empty, text="No classes found", 
+                        font=(self.FONT, 18, "bold"), text_color="#64748B").pack()
+            ctk.CTkLabel(empty, text="You haven't joined any classes yet", 
+                        font=(self.FONT, 13), text_color="#94A3B8").pack(pady=(5, 40))
             return
-
-        # Render từng thẻ
-        for i, class_data in enumerate(classes):
-            row = i // 3
-            col = i % 3
-            self.create_class_card(class_data, row, col)
+        
+        # Render class cards
+        for i, c in enumerate(classes):
+            self.create_class_card(c, i//3, i%3)
 
     def create_class_card(self, data, row, col):
-        """Tạo giao diện 1 thẻ lớp học"""
-        card = ctk.CTkFrame(self.scroll_frame, fg_color="white", corner_radius=15, 
-                            border_width=1, border_color="#E2E8F0")
-        card.grid(row=row, column=col, sticky="nsew", padx=10, pady=10)
+        """Modern class card with hover effect"""
+        card = ctk.CTkFrame(self.scroll, fg_color="white", corner_radius=16, 
+                           border_width=1, border_color="#E2E8F0")
+        card.grid(row=row, column=col, sticky="nsew", padx=12, pady=12)
         
-        # Header màu của thẻ
-        header_color = "#6366F1" # Màu tím indigo
-        header = ctk.CTkFrame(card, height=8, fg_color=header_color, corner_radius=15)
-        header.pack(fill="x")
-        # Hack để che bo góc dưới của header cho phẳng
-        ctk.CTkFrame(card, height=5, fg_color="white").pack(fill="x") 
-
-        # Nội dung thẻ
+        # Color accent based on semester
+        colors = ["#6366F1", "#8B5CF6", "#EC4899", "#F59E0B", "#10B981"]
+        accent_color = colors[hash(data.get("name", "")) % len(colors)]
+        
+        accent = ctk.CTkFrame(card, height=6, fg_color=accent_color, corner_radius=16)
+        accent.pack(fill="x")
+        
+        # Content
         content = ctk.CTkFrame(card, fg_color="transparent")
-        content.pack(fill="both", expand=True, padx=15, pady=10)
-
-        # Tên lớp
-        class_name = data.get("name", "Unknown Class")
-        ctk.CTkLabel(content, text=class_name, anchor="w",
-                     font=(self.FONT_FAMILY, 16, "bold"), text_color="#1E293B").pack(fill="x")
-
-        # Học kỳ
-        semester = data.get("semester", "N/A")
-        ctk.CTkLabel(content, text=f"Semester: {semester}", anchor="w",
-                     font=(self.FONT_FAMILY, 12), text_color="#64748B").pack(fill="x", pady=(5, 0))
-
-        # Sĩ số
-        count = len(data.get("student_ids", []))
-        ctk.CTkLabel(content, text=f"{count} Students", anchor="w",
-                     font=(self.FONT_FAMILY, 12, "bold"), text_color="#6366F1").pack(fill="x", pady=(15, 0))
-
-        # Nút Vào lớp
-        btn_enter = ctk.CTkButton(card, text="Go to Class ->", 
-                                  fg_color="#F1F5F9", text_color="#334155", hover_color="#E2E8F0",
-                                  height=35, font=(self.FONT_FAMILY, 13, "bold"),
-                                  command=lambda id=data.get("_id"): self.open_class_detail(id))
-        btn_enter.pack(fill="x", padx=15, pady=(10, 15))
-
-    def open_class_detail(self, class_id):
-        print(f"Open class: {class_id}")
-        # TODO: Chuyển hướng sang màn hình chi tiết lớp (Sẽ làm ở phần sau)
-        messagebox.showinfo("Info", f"Opening class ID: {class_id}\n(Tính năng chi tiết lớp sẽ làm ở bước sau)")
-
-    # --- POPUP TẠO LỚP MỚI ---
-    def open_create_dialog(self):
-        dialog = CreateClassDialog(self)
-        self.wait_window(dialog) # Chờ đóng cửa sổ thì refresh lại list
-        self.load_classes() # Reload lại danh sách
-
-# Class cửa sổ popup tạo lớp
-class CreateClassDialog(ctk.CTkToplevel):
-    def __init__(self, parent):
-        super().__init__(parent)
-        self.title("Create New Class")
-        self.geometry("400x300")
-        self.resizable(False, False)
+        content.pack(fill="both", expand=True, padx=20, pady=20)
         
-        # Cho popup nổi lên trên và chặn tương tác cửa sổ chính (Modal)
-        self.transient(parent)
-        self.grab_set()
+        # Class icon
+        icon_frame = ctk.CTkFrame(content, width=50, height=50, corner_radius=25,
+                                 fg_color=f"{accent_color}20")
+        icon_frame.pack(anchor="w", pady=(0, 15))
+        icon_frame.pack_propagate(False)
         
-        self.configure(fg_color="white")
-
-        ctk.CTkLabel(self, text="Create New Class", font=("DejaVu Sans", 20, "bold"), text_color="#333").pack(pady=20)
-
-        self.entry_name = ctk.CTkEntry(self, placeholder_text="Class Name (e.g. Python Basic)", width=300, height=40)
-        self.entry_name.pack(pady=10)
-
-        self.entry_sem = ctk.CTkEntry(self, placeholder_text="Semester (e.g. 2025-1)", width=300, height=40)
-        self.entry_sem.pack(pady=10)
-
-        self.btn_save = ctk.CTkButton(self, text="Create Now", width=300, height=45,
-                                      fg_color="#3B82F6", hover_color="#2563EB",
-                                      command=self.on_save)
-        self.btn_save.pack(pady=20)
-
-    def on_save(self):
-        name = self.entry_name.get()
-        sem = self.entry_sem.get()
+        ctk.CTkLabel(icon_frame, text="📖", font=(self.FONT, 24)).place(relx=0.5, rely=0.5, anchor="center")
         
-        if not name or not sem:
-            return
+        # Class name
+        ctk.CTkLabel(content, text=data.get("name", "Unnamed Class"), 
+                    font=(self.FONT, 17, "bold"), text_color="#1E293B", 
+                    anchor="w", wraplength=200).pack(fill="x", pady=(0, 5))
+        
+        # Semester badge
+        semester_frame = ctk.CTkFrame(content, fg_color="transparent")
+        semester_frame.pack(fill="x", pady=(0, 10))
+        
+        ctk.CTkLabel(semester_frame, text="📅", font=(self.FONT, 12)).pack(side="left", padx=(0, 5))
+        ctk.CTkLabel(semester_frame, text=data.get("semester", "N/A"), 
+                    font=(self.FONT, 12), text_color="#64748B").pack(side="left")
+        
+        # Student count
+        student_count = len(data.get('student_ids', []))
+        count_frame = ctk.CTkFrame(content, fg_color="#F8FAFC", corner_radius=8)
+        count_frame.pack(fill="x", pady=(0, 15))
+        
+        ctk.CTkLabel(count_frame, text=f"👥 {student_count} students", 
+                    font=(self.FONT, 12, "bold"), text_color="#475569").pack(pady=8)
+        
+        # Action button
+        btn = ctk.CTkButton(content, text="View Details →", 
+                           fg_color=accent_color, hover_color=accent_color,
+                           text_color="white", corner_radius=10, height=38,
+                           font=(self.FONT, 13, "bold"),
+                           command=lambda d=data: self.open_class_detail(d))
+        btn.pack(fill="x")
 
-        self.btn_save.configure(state="disabled", text="Creating...")
+    def open_class_detail(self, class_data):
+        """Modern class detail dialog"""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(f"Class: {class_data['name']}")
+        dialog.geometry("800x650")
+        dialog.transient(self)
+        dialog.configure(fg_color="#F8FAFC")
         
-        # Gọi API
-        success, msg = api.create_class(name, sem)
+        # Header
+        header = ctk.CTkFrame(dialog, fg_color="white", corner_radius=0)
+        header.pack(fill="x")
         
-        if success:
-            self.destroy() # Đóng popup
-        else:
-            self.btn_save.configure(state="normal", text="Create Now")
-            messagebox.showerror("Error", msg)
+        ctk.CTkFrame(header, height=4, fg_color="#6366F1").pack(fill="x")
+        
+        header_content = ctk.CTkFrame(header, fg_color="transparent")
+        header_content.pack(fill="x", padx=30, pady=20)
+        
+        # Class info
+        info_frame = ctk.CTkFrame(header_content, fg_color="transparent")
+        info_frame.pack(side="left")
+        
+        ctk.CTkLabel(info_frame, text=class_data['name'], 
+                    font=(self.FONT, 22, "bold"), text_color="#1E293B").pack(anchor="w")
+        ctk.CTkLabel(info_frame, text=f"📅 {class_data['semester']}", 
+                    font=(self.FONT, 13), text_color="#64748B").pack(anchor="w", pady=(5, 0))
+        
+        # Actions for CVHT
+        if api.user_info.get("role") == "CVHT":
+            action_frame = ctk.CTkFrame(header_content, fg_color="transparent")
+            action_frame.pack(side="right")
+            
+            ctk.CTkButton(action_frame, text="📥 Import Students", 
+                         fg_color="#10B981", hover_color="#059669",
+                         corner_radius=10, height=38,
+                         command=lambda: self.import_students(class_data['_id'])).pack()
+        
+        # Student list container
+        list_container = ctk.CTkFrame(dialog, fg_color="white", corner_radius=16,
+                                     border_width=1, border_color="#E2E8F0")
+        list_container.pack(fill="both", expand=True, padx=20, pady=20)
+        
+        # List header
+        list_header = ctk.CTkFrame(list_container, fg_color="transparent")
+        list_header.pack(fill="x", padx=25, pady=(20, 10))
+        
+        ctk.CTkLabel(list_header, text="👥 Students", 
+                    font=(self.FONT, 18, "bold"), text_color="#1E293B").pack(side="left")
+        
+        # Scrollable student list
+        scroll = ctk.CTkScrollableFrame(list_container, fg_color="transparent",
+                                       scrollbar_button_color="#CBD5E1")
+        scroll.pack(fill="both", expand=True, padx=20, pady=(0, 20))
+        
+        loading = ctk.CTkLabel(scroll, text="Loading students...", text_color="#94A3B8")
+        loading.pack(pady=30)
+        
+        def load_students():
+            students = api.get_class_students(class_data['_id'])
+            dialog.after(0, lambda: render_students(students, loading, scroll))
+        
+        def render_students(students, loading_lbl, container):
+            loading_lbl.destroy()
+            
+            if not students:
+                empty = ctk.CTkFrame(container, fg_color="#F8FAFC", corner_radius=12)
+                empty.pack(fill="x", pady=20)
+                ctk.CTkLabel(empty, text="No students in this class yet", 
+                            font=(self.FONT, 13), text_color="#94A3B8").pack(pady=30)
+                return
+            
+            for idx, student in enumerate(students):
+                # Student row
+                row = ctk.CTkFrame(container, fg_color="#F8FAFC" if idx % 2 == 0 else "white", 
+                                  corner_radius=10)
+                row.pack(fill="x", pady=3)
+                
+                # Avatar
+                avatar = ctk.CTkFrame(row, width=40, height=40, corner_radius=20,
+                                     fg_color="#E0F2FE", border_width=2, border_color="#3B82F6")
+                avatar.pack(side="left", padx=15, pady=10)
+                avatar.pack_propagate(False)
+                
+                initial = student['full_name'][0].upper() if student.get('full_name') else "?"
+                ctk.CTkLabel(avatar, text=initial, font=(self.FONT, 16, "bold"), 
+                            text_color="#0284C7").place(relx=0.5, rely=0.5, anchor="center")
+                
+                # Info
+                info = ctk.CTkFrame(row, fg_color="transparent")
+                info.pack(side="left", fill="x", expand=True, pady=10)
+                
+                ctk.CTkLabel(info, text=student.get('full_name', 'N/A'), 
+                            font=(self.FONT, 14, "bold"), text_color="#1E293B", 
+                            anchor="w").pack(anchor="w")
+                
+                detail_frame = ctk.CTkFrame(info, fg_color="transparent")
+                detail_frame.pack(anchor="w")
+                
+                ctk.CTkLabel(detail_frame, text=f"🆔 {student['mssv']}", 
+                            font=(self.FONT, 11), text_color="#64748B").pack(side="left", padx=(0, 15))
+                ctk.CTkLabel(detail_frame, text=f"📧 {student['email']}", 
+                            font=(self.FONT, 11), text_color="#64748B").pack(side="left")
+                
+                # Remove button for CVHT
+                if api.user_info.get("role") == "CVHT":
+                    ctk.CTkButton(row, text="✕", width=35, height=35,
+                                 fg_color="#FEE2E2", hover_color="#FEF2F2",
+                                 text_color="#DC2626", corner_radius=8,
+                                 font=(self.FONT, 16, "bold"),
+                                 command=lambda s=student: self.remove_student(class_data['_id'], s['_id'], dialog)).pack(side="right", padx=15)
+        
+        threading.Thread(target=load_students).start()
+
+    def import_students(self, class_id):
+        file_path = filedialog.askopenfilename(
+            title="Select Student List",
+            filetypes=[("Excel Files", "*.xlsx *.xls"), ("CSV Files", "*.csv")]
+        )
+        if file_path:
+            success, result = api.import_students(class_id, file_path)
+            if success:
+                msg = f"✅ Successfully imported {result.get('added_count', 0)} students"
+                if result.get('errors'):
+                    msg += f"\n\n⚠️ Errors:\n" + "\n".join(result['errors'][:5])
+                messagebox.showinfo("Import Complete", msg)
+                self.load()
+            else:
+                messagebox.showerror("Import Failed", str(result))
+
+    def remove_student(self, class_id, user_id, dialog):
+        if messagebox.askyesno("Confirm Removal", "Remove this student from the class?"):
+            success, msg = api.remove_student_from_class(class_id, user_id)
+            if success:
+                messagebox.showinfo("Success", "Student removed successfully")
+                dialog.destroy()
+                self.load()
+            else:
+                messagebox.showerror("Error", msg)
+
+    def popup_create(self):
+        """Modern create class dialog"""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Create New Class")
+        dialog.geometry("450x400")
+        dialog.transient(self)
+        dialog.configure(fg_color="white")
+        
+        # Header
+        header = ctk.CTkFrame(dialog, fg_color="#6366F1", corner_radius=0)
+        header.pack(fill="x")
+        
+        ctk.CTkLabel(header, text="🎓 Create New Class", 
+                    font=(self.FONT, 20, "bold"), text_color="white").pack(pady=25)
+        
+        # Form
+        form = ctk.CTkFrame(dialog, fg_color="transparent")
+        form.pack(fill="both", expand=True, padx=30, pady=30)
+        
+        # Class name
+        ctk.CTkLabel(form, text="Class Name", font=(self.FONT, 13, "bold"), 
+                    text_color="#1E293B").pack(anchor="w", pady=(0, 8))
+        entry_name = ctk.CTkEntry(form, height=45, font=(self.FONT, 13),
+                                 placeholder_text="e.g., Advanced Programming",
+                                 border_color="#E2E8F0", fg_color="#F8FAFC")
+        entry_name.pack(fill="x", pady=(0, 20))
+        
+        # Semester
+        ctk.CTkLabel(form, text="Semester", font=(self.FONT, 13, "bold"), 
+                    text_color="#1E293B").pack(anchor="w", pady=(0, 8))
+        entry_sem = ctk.CTkEntry(form, height=45, font=(self.FONT, 13),
+                                placeholder_text="e.g., 2025-1",
+                                border_color="#E2E8F0", fg_color="#F8FAFC")
+        entry_sem.pack(fill="x", pady=(0, 30))
+        
+        def submit():
+            name = entry_name.get().strip()
+            sem = entry_sem.get().strip()
+            
+            if not name or not sem:
+                messagebox.showwarning("Missing Information", "Please fill in all fields")
+                return
+            
+            success, msg = api.create_class(name, sem)
+            if success:
+                messagebox.showinfo("Success", "✅ Class created successfully!")
+                dialog.destroy()
+                self.load()
+            else:
+                messagebox.showerror("Error", f"Failed to create class: {msg}")
+        
+        # Buttons
+        btn_frame = ctk.CTkFrame(form, fg_color="transparent")
+        btn_frame.pack(fill="x")
+        
+        ctk.CTkButton(btn_frame, text="Cancel", height=45,
+                     fg_color="#F1F5F9", hover_color="#E2E8F0",
+                     text_color="#64748B", corner_radius=10,
+                     command=dialog.destroy).pack(side="left", fill="x", expand=True, padx=(0, 10))
+        
+        ctk.CTkButton(btn_frame, text="Create Class", height=45,
+                     fg_color="#6366F1", hover_color="#4F46E5",
+                     corner_radius=10, font=(self.FONT, 14, "bold"),
+                     command=submit).pack(side="right", fill="x", expand=True)
