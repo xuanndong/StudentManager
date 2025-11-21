@@ -1,15 +1,15 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
 
-class ClassCreate(BaseModel):
+class AdministrativeClassCreate(BaseModel):
     name: str = Field(..., examples=["CNTT-K17"])
-    semester: str = Field(..., examples=["2025-1"])
+    academic_year: str = Field(..., examples=["2020-2024"])  # Khóa học
 
 
-class ClassResponse(ClassCreate):
+class AdministrativeClassResponse(AdministrativeClassCreate):
     id: str = Field(..., alias="_id")
-    advisor_id: str # ID of CVHT
-    student_ids: list[str] = [] # List user_id of student in class
+    advisor_id: str  # ID của CVHT
+    student_ids: list[str] = []  # List user_id của sinh viên
     created_at: datetime
 
     model_config = {
@@ -19,10 +19,10 @@ class ClassResponse(ClassCreate):
             "examples": [
                 {
                     "id": "",
+                    "name": "CNTT-K17",
+                    "academic_year": "2020-2024",
                     "advisor_id": "",
                     "student_ids": [],
-                    "name": "",
-                    "semester": "",
                     "created_at": ""
                 }
             ]

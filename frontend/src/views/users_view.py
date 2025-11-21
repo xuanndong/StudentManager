@@ -6,7 +6,7 @@ from tkinter import messagebox
 class UsersView(ctk.CTkFrame):
     def __init__(self, master):
         super().__init__(master, fg_color="transparent")
-        self.FONT = "DejaVu Sans"
+        self.FONT = "Ubuntu"
         
         # Modern header
         self.create_header()
@@ -47,7 +47,7 @@ class UsersView(ctk.CTkFrame):
         title_frame = ctk.CTkFrame(content, fg_color="transparent")
         title_frame.pack(side="left")
         
-        ctk.CTkLabel(title_frame, text="👥", font=(self.FONT, 28)).pack(side="left", padx=(0, 10))
+        ctk.CTkLabel(title_frame, text="Group", font=(self.FONT, 28)).pack(side="left", padx=(0, 10))
         ctk.CTkLabel(title_frame, text="User Management", 
                     font=(self.FONT, 24, "bold"), text_color="#1E293B").pack(side="left")
         
@@ -128,12 +128,12 @@ class UsersView(ctk.CTkFrame):
         action_frame = ctk.CTkFrame(row, fg_color="transparent")
         action_frame.pack(side="left", fill="x", expand=True, padx=10)
         
-        ctk.CTkButton(action_frame, text="✏️", width=35, height=35, 
+        ctk.CTkButton(action_frame, text="Write", width=35, height=35, 
                      fg_color="#E0F2FE", hover_color="#BAE6FD",
                      text_color="#0284C7", corner_radius=8,
                      command=lambda u=user: self.edit_user(u)).pack(side="left", padx=3)
         
-        ctk.CTkButton(action_frame, text="🗑️", width=35, height=35,
+        ctk.CTkButton(action_frame, text="Empty", width=35, height=35,
                      fg_color="#FEE2E2", hover_color="#FECACA",
                      text_color="#DC2626", corner_radius=8,
                      command=lambda u=user: self.delete_user(u)).pack(side="left", padx=3)
@@ -149,7 +149,7 @@ class UsersView(ctk.CTkFrame):
         header = ctk.CTkFrame(dialog, fg_color="#6366F1", corner_radius=0)
         header.pack(fill="x")
         
-        ctk.CTkLabel(header, text="✏️ Edit User", font=(self.FONT, 20, "bold"), 
+        ctk.CTkLabel(header, text="Edit User", font=(self.FONT, 20, "bold"), 
                     text_color="white").pack(pady=25)
         
         # Form
@@ -211,7 +211,7 @@ class UsersView(ctk.CTkFrame):
             
             success, msg = api.update_user(user['_id'], data)
             if success:
-                messagebox.showinfo("Success", "✅ User updated successfully!")
+                messagebox.showinfo("Success", "User updated successfully!")
                 dialog.destroy()
                 self.refresh(None)
             else:
@@ -237,10 +237,10 @@ class UsersView(ctk.CTkFrame):
         confirm_msg += f"Name: {user.get('full_name', 'N/A')}\n\n"
         confirm_msg += "This action cannot be undone!"
         
-        if messagebox.askyesno("⚠️ Confirm Deletion", confirm_msg):
+        if messagebox.askyesno("Confirm Deletion", confirm_msg):
             success, msg = api.delete_user(user['_id'])
             if success:
-                messagebox.showinfo("Success", "✅ User deleted successfully")
+                messagebox.showinfo("Success", "User deleted successfully")
                 self.refresh(None)
             else:
                 messagebox.showerror("Error", f"Failed to delete user:\n{msg}")

@@ -36,7 +36,7 @@ class LoginView(ctk.CTkFrame):
         self.box = ctk.CTkFrame(self.form, fg_color="white")
         self.box.place(relx=0.5, rely=0.5, anchor="center")
 
-        FONT = "DejaVu Sans"
+        FONT = "Ubuntu"
         ctk.CTkLabel(self.box, text="Welcome Back!", font=(FONT, 32, "bold"), text_color="black").pack(anchor="w", pady=(0, 5))
         ctk.CTkLabel(self.box, text="Sign in to continue", font=(FONT, 16), text_color="gray").pack(anchor="w", pady=(0, 40))
 

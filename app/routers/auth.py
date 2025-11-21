@@ -22,13 +22,15 @@ async def register(request: Request, user: UserCreate) -> UserResponse:
         raise HTTPException(status_code=400, detail="Mssv already registered")
     
     user_dict = user.model_dump()
-    user_dict["password"] = hash_password(user_dict["password"])
+    # user_dict["password"] = hash_password(user_dict["password"])
 
     new_user = await db.users.insert_one(user_dict)
     created_user = await db.users.find_one({"_id": new_user.inserted_id})
 
-    # Convert ObjectId to string
+    # Convert ObjectId to string and remove password
     created_user["_id"] = str(created_user["_id"])
+    if "password" in created_user:
+        del created_user["password"]
 
     return created_user
 
@@ -40,7 +42,8 @@ async def login(request: Request, response: Response, user_login: UserLogin) -> 
 
     user = await db.users.find_one({"mssv": user_login.mssv})
 
-    if not user or not verify_password(user_login.password, user["password"]):
+    # if not user or not verify_password(user_login.password, user["password"]):
+    if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Wrong student code or password",

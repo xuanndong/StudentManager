@@ -16,6 +16,69 @@ router = APIRouter(prefix=os.getenv("API_V1_STR", "/api/v1"), tags=['Chat System
 # --- REST API (Quản lý hội thoại & Lịch sử) ---
 
 # Tạo cuộc hội thoại mới (hoặc lấy cái cũ nếu đã có)
+@router.get("/search-by-phone/{phone}")
+async def search_user_by_phone(
+    phone: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Tìm user theo số điện thoại"""
+    db: AsyncDatabase = request.app.state.db
+    
+    user = await db.users.find_one({"phone": phone})
+    if not user:
+        raise HTTPException(status_code=404, detail=f"User with phone {phone} not found")
+    
+    user["_id"] = str(user["_id"])
+    if "password" in user:
+        del user["password"]
+    
+    return user
+
+
+@router.post("/conversations/by-phone", response_model=ConversationResponse)
+async def create_conversation_by_phone(
+    phone: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Tạo conversation theo số điện thoại"""
+    db: AsyncDatabase = request.app.state.db
+    sender_id = str(current_user["_id"])
+    
+    # Tìm user theo phone
+    receiver = await db.users.find_one({"phone": phone})
+    if not receiver:
+        raise HTTPException(status_code=404, detail=f"User with phone {phone} not found")
+    
+    receiver_id = str(receiver["_id"])
+    
+    # Không thể chat với chính mình
+    if sender_id == receiver_id:
+        raise HTTPException(status_code=400, detail="Cannot chat with yourself")
+    
+    # Kiểm tra xem đã có cuộc hội thoại giữa 2 người chưa
+    existing_conv = await db.conversations.find_one({
+        "participants": {"$all": [sender_id, receiver_id]}
+    })
+
+    if existing_conv:
+        existing_conv["_id"] = str(existing_conv["_id"])
+        return existing_conv
+
+    # Nếu chưa có -> Tạo mới
+    new_conv = {
+        "participants": [sender_id, receiver_id],
+        "last_message": None,
+        "updated_at": datetime.now()
+    }
+    result = await db.conversations.insert_one(new_conv)
+    
+    created_conv = await db.conversations.find_one({"_id": result.inserted_id})
+    created_conv["_id"] = str(created_conv["_id"])
+    return created_conv
+
+
 @router.post("/conversations", response_model=ConversationResponse)
 async def create_conversation(
     conv_in: ConversationCreate,
@@ -31,7 +94,10 @@ async def create_conversation(
         raise HTTPException(status_code=400, detail="Cannot chat with yourself")
 
     # Kiểm tra xem receiver có tồn tại không
-    receiver = await db.users.find_one({"_id": receiver_id})
+    if not ObjectId.is_valid(receiver_id):
+        raise HTTPException(status_code=400, detail="Invalid receiver ID format")
+    
+    receiver = await db.users.find_one({"_id": ObjectId(receiver_id)})
     if not receiver:
         raise HTTPException(status_code=404, detail="Receiver not found")
 
@@ -73,6 +139,16 @@ async def get_my_conversations(
 
     for c in conversations:
         c["_id"] = str(c["_id"])
+        
+        # Populate other user info
+        participants = c.get("participants", [])
+        other_user_id = next((p for p in participants if p != user_id), None)
+        
+        if other_user_id and ObjectId.is_valid(other_user_id):
+            other_user = await db.users.find_one({"_id": ObjectId(other_user_id)})
+            if other_user:
+                c["other_user_name"] = other_user.get("full_name", "Unknown")
+                c["other_user_phone"] = other_user.get("phone", "")
     
     return conversations
 
@@ -104,21 +180,15 @@ async def get_messages(
 
 # --- WEBSOCKET (Real-time Messaging) ---
 
-# Endpoint này Client Tkinter sẽ connect vào: ws://localhost:8080/api/v1/ws/{user_id}
+# Connect vào: ws://localhost:8080/api/v1/ws/{user_id}
 @router.websocket("/ws/{user_id}")
 async def websocket_endpoint(websocket: WebSocket, user_id: str):
     # Chấp nhận kết nối
     await manager.connect(websocket, user_id)
-    
-    # Lấy DB instance (Hơi khó lấy từ request trong websocket, nên ta import từ module connection hoặc tạo mới)
-    # Ở đây để đơn giản, ta giả định user_id gửi lên là đúng (Trong thực tế cần verify token trong Header của WS)
-    # Để code chạy được ngay, ta sẽ lấy db từ app state thông qua websocket.app
     db: AsyncDatabase = websocket.app.state.db
     
     try:
         while True:
-            # Chờ nhận tin nhắn từ Client gửi lên (JSON)
-            # Format mong đợi: {"conversation_id": "...", "content": "..."}
             data = await websocket.receive_json()
             
             conversation_id = data.get("conversation_id")
@@ -149,8 +219,6 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
                     }
                 )
                 
-                # Gửi Real-time cho người nhận
-                # Cần tìm xem người nhận là ai trong conversation này
                 conv = await db.conversations.find_one({"_id": ObjectId(conversation_id)})
                 if conv:
                     participants = conv["participants"]

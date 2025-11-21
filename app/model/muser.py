@@ -4,6 +4,7 @@ from enum import Enum
 
 class UserRole(str, Enum):
     STUDENT = 'STUDENT'
+    TEACHER = 'TEACHER'
     CVHT = 'CVHT'
     ADMIN = 'ADMIN'
 
@@ -12,8 +13,10 @@ class UserBase(BaseModel):
     mssv: str
     email: EmailStr
     full_name: str | None = None
+    phone: str | None = None  # Số điện thoại
     role: UserRole = UserRole.STUDENT
     is_active: bool = True
+    administrative_class_id: str | None = None  # Lớp chính quy (chỉ cho STUDENT)
 
 
 class UserCreate(UserBase):
@@ -35,13 +38,13 @@ class UserResponse(UserBase):
             "examples": [
                 {
                     "id": "",
+                    "mssv": "20201234",
                     "email": "abc@gmail.com",
                     "full_name": "John Washion",
                     "role": "STUDENT",
-                    "is_active": 1
+                    "is_active": True,
+                    "administrative_class_id": None
                 }
             ]
         }
     }
-
-

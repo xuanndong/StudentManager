@@ -1,8 +1,6 @@
 import customtkinter as ctk
 from src.components.sidebar import Sidebar
 from src.views.dashboard_view import DashboardView
-from src.views.classes_view import ClassesView
-from src.views.grades_view import GradesView
 from src.views.chat_view import ChatView
 from src.views.forum_view import ForumView
 from src.views.users_view import UsersView
@@ -13,52 +11,97 @@ class MainView(ctk.CTkFrame):
     def __init__(self, master, on_logout):
         super().__init__(master)
         self.on_logout = on_logout
+
+        # Layout: Sidebar (Fixed) - Content (Expand)
+        self.grid_columnconfigure(0, weight=0) 
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=1)
 
+        # Font chuẩn
+        self.FONT_TITLE = ("Ubuntu", 24, "bold")
+
         # Sidebar
-        self.sidebar = Sidebar(self, on_navigate=self.switch, on_logout=self.handle_logout)
+        self.sidebar = Sidebar(self, on_navigate=self.switch_view, on_logout=self.logout_handler)
         self.sidebar.grid(row=0, column=0, sticky="nsew")
 
-        # Content
-        self.content = ctk.CTkFrame(self, fg_color="#F8FAFC")
+        # Main Content Background
+        self.content = ctk.CTkFrame(self, fg_color="#F8FAFC", corner_radius=0)
         self.content.grid(row=0, column=1, sticky="nsew")
-        self.content.grid_rowconfigure(1, weight=1)
+        
+        # Grid nội dung bên phải
+        self.content.grid_rowconfigure(0, weight=0) # Header
+        self.content.grid_rowconfigure(1, weight=1) # View Area
         self.content.grid_columnconfigure(0, weight=1)
 
-        # Header
+        # Header Bar (Trắng)
         self.header = ctk.CTkFrame(self.content, height=70, fg_color="white", corner_radius=0)
         self.header.grid(row=0, column=0, sticky="ew")
-        self.lbl_title = ctk.CTkLabel(self.header, text="Dashboard", font=("DejaVu Sans", 24, "bold"), text_color="#334155")
+        
+        # Đường kẻ dưới header
+        ctk.CTkFrame(self.header, height=1, fg_color="#E2E8F0").pack(side="bottom", fill="x")
+        
+        # Tiêu đề trang
+        self.lbl_title = ctk.CTkLabel(self.header, text="Dashboard", 
+                                      font=self.FONT_TITLE, text_color="#334155")
         self.lbl_title.pack(side="left", padx=30, pady=20)
 
-        # View Area
+        # View Area (Trong suốt để lộ nền xám)
         self.view_area = ctk.CTkFrame(self.content, fg_color="transparent")
-        self.view_area.grid(row=1, column=0, sticky="nsew", padx=20, pady=20)
+        self.view_area.grid(row=1, column=0, sticky="nsew", padx=30, pady=30)
 
-        self.switch("dashboard")
+        # Init
+        self.views = {}
+        self.switch_view("dashboard")
 
-    def switch(self, key):
+    def switch_view(self, key):
+        # Xóa view cũ
         for w in self.view_area.winfo_children(): w.destroy()
         
-        # Set Title
+        # Map Title
         titles = {
-            "dashboard": "Dashboard", "classes": "Classes", "grades": "Grades",
-            "forum": "Forum", "chat": "Messages", "stats": "Statistics", "users": "User Management"
+            "dashboard": "Overview",
+            "users": "User Management",
+            "courses": "Course Catalog",
+            "admin_classes": "Administrative Classes",
+            "course_classes": "Course Classes",
+            "course_grades": "Grade Entry",
+            "semester_summary": "Semester Summary",
+            "student_classes": "My Classes",
+            "student_grades": "My Academic Records",
+            "forum": "Discussion Forum",
+            "chat": "Messages",
+            "stats": "Statistics Report"
         }
         self.lbl_title.configure(text=titles.get(key, "Dashboard"))
 
-        # Render View
-        views = {
-            "dashboard": DashboardView, "classes": ClassesView, "grades": GradesView,
-            "forum": ForumView, "chat": ChatView, "stats": StatsView, "users": UsersView
+        # Import views khi cần
+        from src.views.admin_classes_view import AdminClassesView
+        from src.views.courses_view import CoursesView
+        from src.views.course_classes_view import CourseClassesView
+        from src.views.course_grades_view import CourseGradesView
+        from src.views.semester_summary_view import SemesterSummaryView
+        from src.views.student_classes_view import StudentClassesView
+        from src.views.student_grades_view import StudentGradesView
+
+        # Map View Class
+        view_map = {
+            "dashboard": DashboardView,
+            "users": UsersView,
+            "courses": CoursesView,
+            "admin_classes": AdminClassesView,
+            "course_classes": CourseClassesView,
+            "course_grades": CourseGradesView,
+            "semester_summary": SemesterSummaryView,
+            "student_classes": StudentClassesView,
+            "student_grades": StudentGradesView,
+            "forum": ForumView,
+            "chat": ChatView,
+            "stats": StatsView
         }
         
-        if key in views:
-            views[key](self.view_area).pack(fill="both", expand=True)
-        else:
-            ctk.CTkLabel(self.view_area, text="Not Found").pack()
+        if key in view_map:
+            view_map[key](self.view_area).pack(fill="both", expand=True)
 
-    def handle_logout(self):
+    def logout_handler(self):
         api.logout()
         self.on_logout()

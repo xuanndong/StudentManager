@@ -16,6 +16,8 @@ router = APIRouter(prefix=os.getenv("API_V1_STR","/api/v1") + "/users", tags=['U
 @router.get("/me", response_model=UserResponse)
 async def read_users_me(current_user: dict = Depends(get_current_user)):
     current_user['_id'] = str(current_user["_id"])
+    if "password" in current_user:
+        del current_user["password"]
     return current_user
 
 
@@ -36,6 +38,8 @@ async def get_all_users(
 
     for u in users:
         u['_id'] = str(u['_id'])
+        if "password" in u:
+            del u["password"]
 
     return users
 
@@ -53,6 +57,8 @@ async def get_user_by_id(
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
     
     user['_id'] = str(user['_id'])
+    if "password" in user:
+        del user["password"]
 
     return user
 
@@ -78,6 +84,8 @@ async def update_user(
     
     updated_user = await db.users.find_one({'_id': ObjectId(user_id)})
     updated_user['_id'] = str(updated_user['_id'])
+    if "password" in updated_user:
+        del updated_user["password"]
     return updated_user
 
 

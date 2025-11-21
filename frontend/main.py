@@ -19,9 +19,23 @@ class App(ctk.CTk):
         # Khởi tạo container chính
         self.container = ctk.CTkFrame(self)
         self.container.pack(fill="both", expand=True)
+        
+        # Setup cleanup on window close
+        self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
         # Hiển thị màn hình login đầu tiên
         self.show_login()
+    
+    def on_closing(self):
+        """Cleanup before closing"""
+        try:
+            # Destroy all widgets properly
+            self.clear_container()
+            # Quit the application
+            self.quit()
+            self.destroy()
+        except:
+            pass
 
     def show_login(self):
         self.clear_container()
@@ -36,8 +50,14 @@ class App(ctk.CTk):
         
 
     def clear_container(self):
-        for widget in self.container.winfo_children():
-            widget.destroy()
+        try:
+            for widget in self.container.winfo_children():
+                try:
+                    widget.destroy()
+                except:
+                    pass
+        except:
+            pass
 
 if __name__ == "__main__":
     app = App()

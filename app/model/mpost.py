@@ -1,5 +1,11 @@
 from pydantic import BaseModel, Field
 from datetime import datetime
+from enum import Enum
+
+class PostType(str, Enum):
+    ADMINISTRATIVE = "ADMINISTRATIVE"  # Bài đăng lớp chính quy (CVHT)
+    COURSE = "COURSE"  # Bài đăng lớp học phần (Teacher)
+
 
 class CommentBase(BaseModel):
     content: str = Field(..., min_length=1, examples=["Bài viết này rất hữu ích"])
@@ -9,6 +15,7 @@ class CommentCreate(CommentBase):
 
 class CommentResponse(CommentBase):
     user_id: str
+    user_name: str | None = None  # Populated from users collection
     created_at: datetime
 
 
@@ -24,27 +31,17 @@ class PostUpdate(BaseModel):
 
 class PostResponse(PostBase):
     id: str = Field(..., alias="_id")
-    class_id: str
+    post_type: PostType
+    class_id: str  # ID của AdministrativeClass hoặc CourseClass
     author_id: str
-    likes: list[str] = [] # Danh sách user likes
+    author_name: str | None = None  # Populated from users collection
+    author_role: str | None = None  # Populated from users collection
+    likes: list[str] = []
     comments: list[CommentResponse] = []
     created_at: datetime
     updated_at: datetime
 
     model_config = {
         "populate_by_name": True,
-        "from_attributes": True,
-        "json_schema_extra": {
-            "examples": [
-                {
-                    "id": "",
-                    "class_id": "",
-                    "author_id": "",
-                    "likes": [],
-                    "comments": [],
-                    "created_at": "",
-                    "updated_at": ""
-                }
-            ]
-        }
+        "from_attributes": True
     }

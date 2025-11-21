@@ -26,7 +26,8 @@ async def get_current_user(request: Request, token: str = Depends(oauth2_scheme)
     
     db: AsyncDatabase = request.app.state.db
     user = await db.users.find_one({"mssv": mssv})
-    if user is None:
+    
+    if user is None or not user.get("is_active", True):
         raise credentials_exception
     
     return user
@@ -34,10 +35,21 @@ async def get_current_user(request: Request, token: str = Depends(oauth2_scheme)
 
 async def get_current_cvht(current_user: dict = Depends(get_current_user)):
     role = current_user.get('role')
-    if role != "CVHT":
+    if role not in ["CVHT", "ADMIN"]:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="You do not have permission to perform this action"
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to perform this action. CVHT or Admin role required."
+        )
+    
+    return current_user
+
+
+async def get_current_teacher(current_user: dict = Depends(get_current_user)):
+    role = current_user.get('role')
+    if role not in ["TEACHER", "ADMIN"]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to perform this action. Teacher role required."
         )
     
     return current_user

@@ -38,7 +38,7 @@ async def create_class(class_in: ClassCreate, request: Request, current_user: di
 
 
 @router.get("/", response_model=list[ClassResponse])
-async def get_my_classes(request: Request, current_user: dict = Depends(get_current_user)) -> list:
+async def get_my_classes(request: Request, semester: str | None = None, current_user: dict = Depends(get_current_user)) -> list:
     db: AsyncDatabase = request.app.state.db
 
     filter_query = {}
@@ -47,6 +47,9 @@ async def get_my_classes(request: Request, current_user: dict = Depends(get_curr
     else:
         filter_query = {"student_ids": str(current_user["_id"])}
 
+    if semester and semester != "ALL":
+        filter_query["semester"] = semester
+        
     class_dict = await db.classes.find(filter_query).to_list(length=None)
 
     for c in class_dict:
@@ -180,10 +183,10 @@ async def get_class_detail(
     return class_obj
 
 
-@router.delete("/{class_id}/students/{student_mssv}")
+@router.delete("/{class_id}/students/{student_id}")
 async def remove_student_from_class(
     class_id: str,
-    student_mssv: str,
+    student_id: str,
     request: Request,
     current_user: dict = Depends(get_current_cvht)
 ):
@@ -201,10 +204,10 @@ async def remove_student_from_class(
     # Dùng $pull xóa phần tử khỏi mảng
     result = await db.classes.update_one(
         {"_id": ObjectId(class_id)},
-        {"$pull": {"student_ids": student_mssv}}
+        {"$pull": {"student_ids": student_id}}
     )
 
     if result.modified_count == 0:
         return {"message": "Student not found in class or already removed"}
     
-    return {"message": f"Student {student_mssv} removed from class"}
+    return {"message": f"Student {student_id} removed from class"}

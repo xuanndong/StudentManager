@@ -8,102 +8,184 @@ class Sidebar(ctk.CTkFrame):
         super().__init__(master, width=280, corner_radius=0)
         self.on_navigate = on_navigate
         self.on_logout = on_logout
-        self.configure(fg_color="white")
         
-        # Viền phải
-        ctk.CTkFrame(self, width=1, fg_color="#E5E7EB").place(relx=1.0, rely=0, relheight=1.0, anchor="ne")
+        # --- CẤU HÌNH GIAO DIỆN ---
+        self.configure(fg_color="#D7DADC")
+        
+        # Font chuẩn Linux Mint
+        self.FONT_MAIN = "Ubuntu"
+        
+        # Bảng màu
+        self.COLOR_ACTIVE_BG = "#E0F2FE"     # Xanh rất nhạt (Nền nút khi chọn)
+        self.COLOR_ACTIVE_TEXT = "#0284C7"   # Xanh đậm (Chữ khi chọn)
+        self.COLOR_TEXT = "#475569"          # Xám (Chữ thường)
+        self.COLOR_HOVER = "#F1F5F9"         # Xám nhạt (Khi di chuột)
+        self.COLOR_ACCENT = "#0EA5E9"        # Màu nhấn chính (Logo)
 
-        self.FONT_BOLD = ("DejaVu Sans", 16, "bold")
-        self.FONT_REG = ("DejaVu Sans", 14)
+        # Đường viền ngăn cách bên phải
+        self.border_right = ctk.CTkFrame(self, width=1, fg_color="#E2E8F0")
+        self.border_right.place(relx=1.0, rely=0, relheight=1.0, anchor="ne")
 
-        # 1. Logo
+        # --- 1. LOGO AREA ---
         self.logo_frame = ctk.CTkFrame(self, fg_color="transparent")
-        self.logo_frame.pack(fill="x", padx=25, pady=(30, 20))
-        ctk.CTkLabel(self.logo_frame, text="nasSign", font=("DejaVu Sans", 30, "bold"), text_color="#0EA5E9").pack(anchor="w")
-        ctk.CTkLabel(self.logo_frame, text="Student Manager", font=("DejaVu Sans", 12), text_color="#64748B").pack(anchor="w")
+        self.logo_frame.pack(fill="x", padx=30, pady=(30, 20))
+        
+        # Logo Text với điểm nhấn
+        logo_label = ctk.CTkLabel(self.logo_frame, text="nasSign", 
+                                font=(self.FONT_MAIN, 28, "bold"), text_color=self.COLOR_ACCENT)
+        logo_label.pack(anchor="w")
+        
+        subtitle = ctk.CTkLabel(self.logo_frame, text="Student Management", 
+                              font=(self.FONT_MAIN, 12), text_color="#94A3B8")
+        subtitle.pack(anchor="w", pady=(0, 0))
 
-        # 2. Info Card
-        self.user_info = api.user_info or {}
-        self.create_user_card()
+        # --- 2. USER PROFILE (Thẻ người dùng gọn gàng) ---
+        self.build_user_profile()
 
-        # 3. Menu
-        self.menu_btns = {}
+        # --- 3. MENU NAVIGATION ---
+        # Container chứa menu để dễ căn chỉnh
+        self.menu_frame = ctk.CTkFrame(self, fg_color="transparent")
+        self.menu_frame.pack(fill="both", expand=True, padx=15, pady=10)
+        
+        self.menu_buttons = {} # Lưu tham chiếu các nút
         self.icon_path = os.path.join(os.path.dirname(__file__), "../../assets/icons")
-        self.create_menus()
-
-        # Spacer & Logout
-        ctk.CTkLabel(self, text="").pack(expand=True)
-        ctk.CTkButton(self, text="Log out", fg_color="#FEF2F2", text_color="#DC2626", hover_color="#FEE2E2",
-                      height=45, corner_radius=10, font=self.FONT_BOLD, border_width=1, border_color="#FECACA",
-                      command=self.on_logout).pack(fill="x", padx=20, pady=30)
-
-    def create_user_card(self):
-        card = ctk.CTkFrame(self, fg_color="#F8FAFC", corner_radius=12, border_width=1, border_color="#E2E8F0")
-        card.pack(fill="x", padx=15, pady=(0, 20))
         
-        name = self.user_info.get("full_name", "Unknown")
-        role = self.user_info.get("role", "STUDENT").upper()
-        
-        # Avatar
-        av_frame = ctk.CTkFrame(card, fg_color="transparent")
-        av_frame.pack(side="left", padx=10, pady=10)
-        av_circle = ctk.CTkFrame(av_frame, width=45, height=45, corner_radius=22, fg_color="#E0F2FE")
-        av_circle.pack()
-        initial = name[0].upper() if name else "U"
-        ctk.CTkLabel(av_circle, text=initial, font=("DejaVu Sans", 20, "bold"), text_color="#0284C7").place(relx=0.5, rely=0.5, anchor="center")
+        self.init_menus()
 
-        # Text
-        info = ctk.CTkFrame(card, fg_color="transparent")
-        info.pack(side="left", fill="x", pady=10)
-        ctk.CTkLabel(info, text=name, font=self.FONT_BOLD, text_color="#334155", anchor="w").pack(fill="x")
-        role_color = "#D97706" if role == "CVHT" else ("#DC2626" if role == "ADMIN" else "#64748B")
-        ctk.CTkLabel(info, text=role, font=("DejaVu Sans", 11, "bold"), text_color=role_color, anchor="w").pack(fill="x")
+        # --- 4. FOOTER (Logout) ---
+        self.build_logout()
 
-    def create_menus(self):
-        role = self.user_info.get("role", "STUDENT")
+    def build_user_profile(self):
+        """Tạo thẻ thông tin user gọn gàng"""
+        user_name = "Unknown"
+        user_role = "STUDENT"
+        if api.user_info:
+            user_name = api.user_info.get("full_name", user_name)
+            user_role = api.user_info.get("role", user_role).upper()
+
+        # Card container
+        card = ctk.CTkFrame(self, fg_color="#F8FAFC", corner_radius=12, border_width=1, border_color="#F1F5F9")
+        card.pack(fill="x", padx=20, pady=(0, 25))
+
+        # Avatar (Circle)
+        av_frame = ctk.CTkFrame(card, width=44, height=44, corner_radius=22, fg_color="#BAE6FD")
+        av_frame.pack(side="left", padx=12, pady=12)
+        av_frame.pack_propagate(False) # Giữ kích thước cố định
         
+        first_char = user_name[0].upper() if user_name else "U"
+        ctk.CTkLabel(av_frame, text=first_char, 
+                     font=(self.FONT_MAIN, 20, "bold"), text_color="#0369A1").place(relx=0.5, rely=0.5, anchor="center")
+
+        # Text Info
+        info_frame = ctk.CTkFrame(card, fg_color="transparent")
+        info_frame.pack(side="left", fill="x", expand=True, padx=(0, 10))
+        
+        ctk.CTkLabel(info_frame, text=user_name, anchor="w",
+                     font=(self.FONT_MAIN, 14, "bold"), text_color="#334155").pack(fill="x")
+        
+        role_map = {"CVHT": "#D97706", "ADMIN": "#DC2626", "STUDENT": "#64748B"}
+        role_color = role_map.get(user_role, "#64748B")
+        
+        ctk.CTkLabel(info_frame, text=user_role, anchor="w",
+                     font=(self.FONT_MAIN, 11, "bold"), text_color=role_color).pack(fill="x")
+
+    def init_menus(self):
+        """Khởi tạo menu dựa trên quyền"""
+        role = api.user_info.get("role", "STUDENT") if api.user_info else "STUDENT"
+        
+        # Danh sách menu chuẩn
         menus = [("Dashboard", "dashboard", "dashboard.png")]
         
         if role == "ADMIN":
             menus.extend([
-                ("User Manager", "users", "users.png"),
-                ("Class Manager", "classes", "class.png"), # Admin view all
+                ("Users", "users", "group.png"),
+                ("Courses", "courses", "class.png"),
+                ("Admin Classes", "admin_classes", "layout.png"),
                 ("Forum", "forum", "forum.png"),
-                ("Messages", "chat", "chat.png"),
             ])
         elif role == "CVHT":
             menus.extend([
-                ("My Classes", "classes", "class.png"),
-                ("Grade Manager", "grades", "grade.png"),
-                ("Statistics", "stats", "stats.png"),
+                ("My Classes", "admin_classes", "class.png"),
+                ("Semester Summary", "semester_summary", "grade.png"),
+                ("Statistics", "stats", "calendar.png"),
                 ("Forum", "forum", "forum.png"),
-                ("Messages", "chat", "chat.png"),
+            ])
+        elif role == "TEACHER":
+            menus.extend([
+                ("My Courses", "course_classes", "class.png"),
+                ("Grade Entry", "course_grades", "grade.png"),
+                ("Forum", "forum", "forum.png"),
             ])
         else: # STUDENT
             menus.extend([
-                ("My Classes", "classes", "class.png"),
-                ("My Grades", "grades", "grade.png"),
+                ("My Classes", "student_classes", "class.png"),
+                ("My Grades", "student_grades", "grade.png"),
                 ("Forum", "forum", "forum.png"),
-                ("Messages", "chat", "chat.png"),
             ])
             
-        for txt, key, ico in menus:
-            self.add_btn(txt, key, ico)
-
-    def add_btn(self, text, key, icon_name):
-        icon = None
-        try: icon = ctk.CTkImage(Image.open(os.path.join(self.icon_path, icon_name)), size=(22, 22))
-        except: pass
+        menus.append(("Messages", "chat", "chat.png"))
         
-        btn = ctk.CTkButton(self, text=f"  {text}", image=icon, compound="left",
-                            fg_color="transparent", text_color="#64748B", hover_color="#F1F5F9",
-                            anchor="w", height=50, corner_radius=8, font=self.FONT_REG,
-                            command=lambda k=key: self.nav_click(k))
-        btn.pack(fill="x", pady=3, padx=15)
-        self.menu_btns[key] = btn
+        # Tạo nút
+        for text, key, icon in menus:
+            self.create_menu_btn(text, key, icon)
 
-    def nav_click(self, key):
-        for b in self.menu_btns.values(): b.configure(fg_color="transparent", text_color="#64748B")
-        if key in self.menu_btns:
-            self.menu_btns[key].configure(fg_color="#E0F2FE", text_color="#0284C7")
+    def create_menu_btn(self, text, key, icon_name):
+        """Tạo một nút menu đồng nhất"""
+        icon_img = None
+        try:
+            icon_img = ctk.CTkImage(Image.open(os.path.join(self.icon_path, icon_name)), size=(22, 22))
+        except: pass
+
+        # Container cho nút
+        btn = ctk.CTkButton(
+            self.menu_frame, 
+            text=f"  {text}", 
+            image=icon_img, 
+            compound="left",
+            font=(self.FONT_MAIN, 14, "bold"),
+            anchor="w",                 # Căn trái
+            height=48,                  # Chiều cao cố định
+            corner_radius=8,            # Bo góc vừa phải
+            fg_color="transparent",     # Mặc định trong suốt
+            text_color=self.COLOR_TEXT,
+            hover_color=self.COLOR_HOVER,
+            command=lambda k=key: self.handle_click(k)
+        )
+        btn.pack(fill="x", pady=4) # Khoảng cách giữa các nút là 4px
+        
+        self.menu_buttons[key] = btn
+
+    def handle_click(self, key):
+        """Xử lý hiệu ứng khi click"""
+        # 1. Reset tất cả về trạng thái thường
+        for btn in self.menu_buttons.values():
+            btn.configure(fg_color="transparent", text_color=self.COLOR_TEXT)
+        
+        # 2. Highlight nút được chọn
+        if key in self.menu_buttons:
+            self.menu_buttons[key].configure(
+                fg_color=self.COLOR_ACTIVE_BG, 
+                text_color=self.COLOR_ACTIVE_TEXT
+            )
+        
+        # 3. Chuyển trang
         self.on_navigate(key)
+
+    def build_logout(self):
+        """Nút đăng xuất tách biệt"""
+        # Đường kẻ mờ phân cách
+        ctk.CTkFrame(self, height=1, fg_color="#F1F5F9").pack(fill="x", padx=20, pady=(10, 10))
+        
+        btn = ctk.CTkButton(
+            self, 
+            text="Log out",
+            font=(self.FONT_MAIN, 14, "bold"),
+            height=45,
+            corner_radius=10,
+            fg_color="#FEF2F2",       # Đỏ rất nhạt
+            text_color="#EF4444",     # Đỏ
+            hover_color="#FEE2E2",
+            border_width=0,
+            command=self.on_logout
+        )
+        btn.pack(fill="x", padx=25, pady=(10, 30), side="bottom")

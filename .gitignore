@@ -1,3 +1,6 @@
 .env
 __pycache__
 *.pyc
+data.json
+import_sample_data.py
+sample_data.json
