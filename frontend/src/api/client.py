@@ -411,5 +411,19 @@ class APIClient:
         """Xóa user"""
         res = self.request("DELETE", f"/users/{user_id}")
         return (True, "OK") if res and res.status_code == 200 else (False, "Error")
+    
+    # --- AI ASSISTANT ---
+    def chat_with_ai(self, message, context=None):
+        """Chat with AI assistant"""
+        res = self.request("POST", "/ai/chat", json={"message": message, "context": context})
+        if res and res.status_code == 200:
+            data = res.json()
+            return data.get('response')
+        return None
+    
+    def check_ai_health(self):
+        """Check if AI service is available"""
+        res = self.request("GET", "/ai/health")
+        return res.json() if res and res.status_code == 200 else {"available": False}
 
 api = APIClient()

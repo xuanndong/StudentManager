@@ -15,6 +15,7 @@ class DashboardView(ctk.CTkScrollableFrame):
         self._destroyed = False
         
         self.build_ui()
+        self.add_ai_button()
         threading.Thread(target=self.load_data, daemon=True).start()
 
     def build_ui(self):
@@ -300,3 +301,42 @@ class DashboardView(ctk.CTkScrollableFrame):
     def destroy(self):
         self._destroyed = True
         super().destroy()
+
+    
+    def add_ai_button(self):
+        """Add floating AI assistant button"""
+        # Only for STUDENT, TEACHER, CVHT (not ADMIN)
+        if self.role == "ADMIN":
+            return
+        
+        # Floating button at bottom right
+        ai_btn = ctk.CTkButton(
+            self.master,
+            text="AI Assistant",
+            font=(self.FONT_NORMAL[0], 13, "bold"),
+            fg_color="#6366F1",
+            hover_color="#5558E3",
+            width=150,
+            height=50,
+            corner_radius=25,
+            command=self.open_ai_chat
+        )
+        # Place at bottom right corner
+        ai_btn.place(relx=0.95, rely=0.95, anchor="se")
+    
+    def open_ai_chat(self):
+        """Open AI chatbot window"""
+        from src.components.ai_chatbot import AIChatbot
+        
+        # Check if AI is available
+        health = api.check_ai_health()
+        if not health.get('available'):
+            from tkinter import messagebox
+            messagebox.showwarning(
+                "AI Not Available",
+                "AI Assistant is not configured.\n\nPlease contact administrator to enable this feature."
+            )
+            return
+        
+        # Open chatbot window
+        AIChatbot(self)

@@ -13,6 +13,7 @@ from app.routers.semester_summary import router as semester_summary
 from app.routers.posts import router as posts
 from app.routers.chat import router as chat
 from app.routers.stats import router as stats
+from app.routers.ai_assistant import router as ai_assistant
 
 # Deprecated routers (kept for backward compatibility)
 from app.routers.classes import router as classes_deprecated
@@ -45,6 +46,7 @@ app.include_router(semester_summary)
 app.include_router(posts)
 app.include_router(chat)
 app.include_router(stats)
+app.include_router(ai_assistant)
 
 # Deprecated routers (for backward compatibility)
 app.include_router(classes_deprecated)

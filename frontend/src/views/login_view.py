@@ -1,6 +1,7 @@
 import customtkinter as ctk
 from PIL import Image
 from src.api.client import api
+from src.config import get_font, FONT_SIZE_TITLE, FONT_SIZE_HEADING, FONT_SIZE_NORMAL, ENTRY_HEIGHT, BUTTON_HEIGHT
 import threading
 import os
 
@@ -36,20 +37,19 @@ class LoginView(ctk.CTkFrame):
         self.box = ctk.CTkFrame(self.form, fg_color="white")
         self.box.place(relx=0.5, rely=0.5, anchor="center")
 
-        FONT = "Ubuntu"
-        ctk.CTkLabel(self.box, text="Welcome Back!", font=(FONT, 32, "bold"), text_color="black").pack(anchor="w", pady=(0, 5))
-        ctk.CTkLabel(self.box, text="Sign in to continue", font=(FONT, 16), text_color="gray").pack(anchor="w", pady=(0, 40))
+        ctk.CTkLabel(self.box, text="Welcome Back!", font=get_font("title", "bold"), text_color="black").pack(anchor="w", pady=(0, 5))
+        ctk.CTkLabel(self.box, text="Sign in to continue", font=get_font("heading"), text_color="gray").pack(anchor="w", pady=(0, 40))
 
         # Input User
-        ctk.CTkLabel(self.box, text="Student ID / Account", font=(FONT, 14, "bold"), text_color="#333").pack(anchor="w", pady=(0, 5))
-        self.user_ent = ctk.CTkEntry(self.box, width=340, height=50, font=(FONT, 14), border_width=1, border_color="#CCC")
+        ctk.CTkLabel(self.box, text="Student ID / Account", font=get_font("normal", "bold"), text_color="#333").pack(anchor="w", pady=(0, 5))
+        self.user_ent = ctk.CTkEntry(self.box, width=340, height=ENTRY_HEIGHT, font=get_font("normal"), border_width=1, border_color="#CCC")
         self.user_ent.pack(pady=(0, 20))
 
         # Input Password
-        ctk.CTkLabel(self.box, text="Password", font=(FONT, 14, "bold"), text_color="#333").pack(anchor="w", pady=(0, 5))
+        ctk.CTkLabel(self.box, text="Password", font=get_font("normal", "bold"), text_color="#333").pack(anchor="w", pady=(0, 5))
         
         # Container ảo để chứa Entry (hoặc dùng chính Entry để place nút)
-        self.pass_ent = ctk.CTkEntry(self.box, width=340, height=50, show="*", font=(FONT, 14), border_width=1, border_color="#CCC")
+        self.pass_ent = ctk.CTkEntry(self.box, width=340, height=ENTRY_HEIGHT, show="*", font=get_font("normal"), border_width=1, border_color="#CCC")
         self.pass_ent.pack(pady=(0, 20))
 
         # --- ICON SHOW/HIDE PASSWORD ---
@@ -71,11 +71,11 @@ class LoginView(ctk.CTkFrame):
         self.btn_eye.place(relx=1.0, rely=0.5, anchor="e", x=-10)
 
         # Login Button
-        self.btn_login = ctk.CTkButton(self.box, text="Login", width=340, height=50, font=(FONT, 16, "bold"),
+        self.btn_login = ctk.CTkButton(self.box, text="Login", width=340, height=BUTTON_HEIGHT, font=get_font("heading", "bold"),
                                        fg_color="#3B82F6", hover_color="#2563EB", command=self.login)
         self.btn_login.pack(pady=10)
         
-        self.lbl_err = ctk.CTkLabel(self.box, text="", text_color="red", font=(FONT, 12))
+        self.lbl_err = ctk.CTkLabel(self.box, text="", text_color="red", font=get_font("small"))
         self.lbl_err.pack()
 
     def toggle_password(self):
