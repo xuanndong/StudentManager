@@ -70,7 +70,7 @@ class StatsView(ctk.CTkFrame):
         loading = ctk.CTkLabel(self.content, text="Loading statistics...", text_color="gray")
         loading.grid(row=0, column=1, pady=20)
         
-        threading.Thread(target=lambda: self.load_stats(loading)).start()
+        threading.Thread(target=lambda: self.load_stats(loading), daemon=True).start()
 
     def load_stats(self, loading_lbl):
         stats = api.get_class_stats(self.selected_class_id, self.sem_var.get())

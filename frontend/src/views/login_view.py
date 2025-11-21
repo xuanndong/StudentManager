@@ -110,7 +110,7 @@ class LoginView(ctk.CTkFrame):
         u, p = self.user_ent.get(), self.pass_ent.get()
         if not u or not p: return
         self.btn_login.configure(state="disabled", text="Verifying...")
-        threading.Thread(target=lambda: self.run_login(u, p)).start()
+        threading.Thread(target=lambda: self.run_login(u, p), daemon=True).start()
 
     def run_login(self, u, p):
         ok, msg = api.login(u, p)
@@ -119,7 +119,7 @@ class LoginView(ctk.CTkFrame):
     def post_login(self, ok, msg):
         self.btn_login.configure(state="normal", text="Login")
         if ok:
-            threading.Thread(target=api.get_user_info).start()
+            threading.Thread(target=api.get_user_info, daemon=True).start()
             self.on_login_success()
         else:
             self.lbl_err.configure(text=msg)

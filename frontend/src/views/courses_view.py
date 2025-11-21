@@ -79,12 +79,21 @@ class CoursesView(ctk.CTkScrollableFrame):
                     text_color="#64748B", anchor="w").pack(side="left", expand=True,
                                                            fill="x", padx=15, pady=15)
         
-        # Actions (placeholder for future)
+        # Actions
         action_frame = ctk.CTkFrame(row, fg_color="transparent")
         action_frame.pack(side="left", padx=15)
         
-        ctk.CTkLabel(action_frame, text="—", font=self.FONT_SMALL,
-                    text_color="#CBD5E1").pack()
+        # Edit button
+        ctk.CTkButton(action_frame, text="Edit", width=60, height=28,
+                     fg_color="#3B82F6", hover_color="#2563EB",
+                     font=self.FONT_SMALL,
+                     command=lambda c=course: self.edit_course(c)).pack(side="left", padx=3)
+        
+        # Delete button
+        ctk.CTkButton(action_frame, text="Delete", width=60, height=28,
+                     fg_color="#EF4444", hover_color="#DC2626",
+                     font=self.FONT_SMALL,
+                     command=lambda c=course: self.delete_course(c)).pack(side="left", padx=3)
 
     def create_course_dialog(self):
         """Dialog tạo môn học mới"""
@@ -92,7 +101,9 @@ class CoursesView(ctk.CTkScrollableFrame):
         dialog.title("Add New Course")
         dialog.geometry("450x350")
         dialog.transient(self)
-        dialog.grab_set()
+        # Wait for dialog to be visible before grab_set
+        dialog.update_idletasks()
+        dialog.after(10, dialog.grab_set)
         
         ctk.CTkLabel(dialog, text="Add New Course", font=self.FONT_TITLE).pack(pady=20)
         
@@ -138,3 +149,76 @@ class CoursesView(ctk.CTkScrollableFrame):
         
         ctk.CTkButton(dialog, text="Create Course", font=self.FONT_NORMAL, height=40,
                      fg_color="#0EA5E9", command=submit).pack(fill="x", padx=30, pady=10)
+
+    def edit_course(self, course):
+        """Dialog chỉnh sửa môn học"""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title(f"Edit Course: {course['code']}")
+        dialog.geometry("450x350")
+        dialog.transient(self)
+        dialog.update_idletasks()
+        dialog.after(10, dialog.grab_set)
+        
+        ctk.CTkLabel(dialog, text="Edit Course", font=self.FONT_TITLE).pack(pady=20)
+        
+        # Course Code (readonly)
+        ctk.CTkLabel(dialog, text="Course Code:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
+        code_display = ctk.CTkEntry(dialog, font=self.FONT_NORMAL, state="disabled")
+        code_display.insert(0, course['code'])
+        code_display.pack(fill="x", padx=30, pady=(5, 15))
+        
+        # Course Name
+        ctk.CTkLabel(dialog, text="Course Name:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
+        name_entry = ctk.CTkEntry(dialog, font=self.FONT_NORMAL)
+        name_entry.insert(0, course['name'])
+        name_entry.pack(fill="x", padx=30, pady=(5, 15))
+        
+        # Credits
+        ctk.CTkLabel(dialog, text="Credits:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
+        credits_entry = ctk.CTkEntry(dialog, font=self.FONT_NORMAL)
+        credits_entry.insert(0, str(course['credits']))
+        credits_entry.pack(fill="x", padx=30, pady=(5, 20))
+        
+        def submit():
+            name = name_entry.get().strip()
+            credits_str = credits_entry.get().strip()
+            
+            if not name or not credits_str:
+                messagebox.showerror("Error", "Please fill all fields")
+                return
+            
+            try:
+                credits = int(credits_str)
+                if credits < 1 or credits > 6:
+                    raise ValueError()
+            except:
+                messagebox.showerror("Error", "Credits must be between 1 and 6")
+                return
+            
+            course_id = course.get('_id', course.get('id'))
+            success, _ = api.update_course(course_id, name, credits)
+            if success:
+                messagebox.showinfo("Success", "Course updated successfully")
+                dialog.destroy()
+                self.load_courses()
+            else:
+                messagebox.showerror("Error", "Failed to update course")
+        
+        ctk.CTkButton(dialog, text="Save Changes", font=self.FONT_NORMAL, height=40,
+                     fg_color="#0EA5E9", command=submit).pack(fill="x", padx=30, pady=10)
+    
+    def delete_course(self, course):
+        """Xóa môn học"""
+        confirm_msg = f"Are you sure you want to delete this course?\n\n"
+        confirm_msg += f"Code: {course['code']}\n"
+        confirm_msg += f"Name: {course['name']}\n\n"
+        confirm_msg += "This will also delete all related course classes!"
+        
+        if messagebox.askyesno("Confirm Deletion", confirm_msg):
+            course_id = course.get('_id', course.get('id'))
+            success, _ = api.delete_course(course_id)
+            if success:
+                messagebox.showinfo("Success", "Course deleted successfully")
+                self.load_courses()
+            else:
+                messagebox.showerror("Error", "Failed to delete course")

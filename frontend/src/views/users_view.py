@@ -77,7 +77,7 @@ class UsersView(ctk.CTkFrame):
         loading = ctk.CTkLabel(self.scroll, text="Loading...", text_color="gray")
         loading.pack(pady=20)
         
-        threading.Thread(target=lambda: self.load(loading)).start()
+        threading.Thread(target=lambda: self.load(loading), daemon=True).start()
 
     def load(self, loading_lbl):
         role = None if self.role_var.get() == "ALL" else self.role_var.get()
@@ -128,12 +128,12 @@ class UsersView(ctk.CTkFrame):
         action_frame = ctk.CTkFrame(row, fg_color="transparent")
         action_frame.pack(side="left", fill="x", expand=True, padx=10)
         
-        ctk.CTkButton(action_frame, text="Write", width=35, height=35, 
+        ctk.CTkButton(action_frame, text="Edit", width=35, height=35, 
                      fg_color="#E0F2FE", hover_color="#BAE6FD",
                      text_color="#0284C7", corner_radius=8,
                      command=lambda u=user: self.edit_user(u)).pack(side="left", padx=3)
         
-        ctk.CTkButton(action_frame, text="Empty", width=35, height=35,
+        ctk.CTkButton(action_frame, text="Delete", width=35, height=35,
                      fg_color="#FEE2E2", hover_color="#FECACA",
                      text_color="#DC2626", corner_radius=8,
                      command=lambda u=user: self.delete_user(u)).pack(side="left", padx=3)
@@ -141,9 +141,10 @@ class UsersView(ctk.CTkFrame):
     def edit_user(self, user):
         dialog = ctk.CTkToplevel(self)
         dialog.title(f"Edit User: {user['mssv']}")
-        dialog.geometry("480x550")
+        dialog.geometry("480x650")
         dialog.transient(self)
         dialog.configure(fg_color="white")
+        dialog.resizable(False, False)
         
         # Header
         header = ctk.CTkFrame(dialog, fg_color="#6366F1", corner_radius=0)

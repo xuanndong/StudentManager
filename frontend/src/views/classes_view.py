@@ -27,7 +27,7 @@ class ClassesView(ctk.CTkScrollableFrame):
         self.loading.grid(row=1, column=1, pady=50)
         
         # Bắt đầu tải dữ liệu
-        threading.Thread(target=self.load).start()
+        threading.Thread(target=self.load, daemon=True).start()
 
     def load_icons(self):
         """Hàm load ảnh PNG để thay thế Emoji"""
@@ -78,7 +78,7 @@ class ClassesView(ctk.CTkScrollableFrame):
         
         self.loading = ctk.CTkLabel(self, text="Refreshing...", text_color="gray")
         self.loading.grid(row=1, column=1, pady=50)
-        threading.Thread(target=self.load).start()
+        threading.Thread(target=self.load, daemon=True).start()
 
     def load(self):
         # Lấy tất cả lớp (không lọc)
@@ -306,7 +306,7 @@ class ClassDetailDialog(ctk.CTkToplevel):
             sv = api.get_class_students(self.data['_id'])
             self.after(0, lambda: self.render_students(sv))
         
-        threading.Thread(target=fetch).start()
+        threading.Thread(target=fetch, daemon=True).start()
 
     def render_students(self, students):
         if not students:
@@ -358,6 +358,12 @@ class ClassDetailDialog(ctk.CTkToplevel):
         if messagebox.askyesno("Confirm", "Remove student from class?"):
             if api.remove_student(self.data['_id'], uid):
                 messagebox.showinfo("Done", "Student removed")
+                # Reload class data to update student count
+                updated_class = api.get_class_detail(self.data['_id'])
+                if updated_class:
+                    self.data = updated_class
+                    # Update header with new count
+                    self.create_header()
                 self.load_students()
             else:
                 messagebox.showerror("Error", "Failed to remove")

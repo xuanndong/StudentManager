@@ -209,7 +209,7 @@ async def get_my_course_grades(
                 if course_id and ObjectId.is_valid(course_id):
                     course = await db.courses.find_one({"_id": ObjectId(course_id)})
                     if course:
-                        r["course_name"] = course.get("name", "Empty")
+                        r["course_name"] = course.get("name", "")
                         r["course_code"] = course.get("code", "")
                         r["credits"] = course.get("credits", 0)
         
@@ -347,7 +347,16 @@ async def get_course_class_grades(
 
     records = await db.course_grades.find({"course_class_id": class_id}).to_list(length=1000)
 
+    # Populate student names
     for r in records:
         r["_id"] = str(r["_id"])
+        
+        # Get student info
+        student_id = r.get('student_id')
+        if student_id and ObjectId.is_valid(student_id):
+            student = await db.users.find_one({"_id": ObjectId(student_id)})
+            if student:
+                r['student_name'] = student.get('full_name', 'Unknown')
+                r['student_mssv'] = student.get('mssv', 'N/A')
     
     return records

@@ -102,3 +102,24 @@ async def delete_user(
         raise HTTPException(status_code=404, detail="User not found")
         
     return {"message": f"User {user_id} has been deleted"}
+
+
+@router.get('/search-by-phone/{phone}', response_model=UserResponse)
+async def search_user_by_phone(
+    phone: str,
+    request: Request,
+    current_user: dict = Depends(get_current_user)
+):
+    """Tìm user theo số điện thoại"""
+    db: AsyncDatabase = request.app.state.db
+    
+    user = await db.users.find_one({"phone": phone})
+    
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found")
+    
+    user['_id'] = str(user['_id'])
+    if "password" in user:
+        del user["password"]
+    
+    return user

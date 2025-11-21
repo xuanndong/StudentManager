@@ -22,9 +22,12 @@ class CourseClassesView(ctk.CTkScrollableFrame):
         ctk.CTkLabel(header, text="My Course Classes", font=self.FONT_TITLE,
                     text_color="#1E293B").pack(side="left")
         
-        ctk.CTkButton(header, text="+ Create Class", font=self.FONT_NORMAL,
-                     height=36, fg_color="#0EA5E9", hover_color="#0284C7",
-                     command=self.create_class_dialog).pack(side="right")
+        # Only ADMIN can create classes
+        user_role = api.user_info.get('role') if api.user_info else None
+        if user_role == "ADMIN":
+            ctk.CTkButton(header, text="+ Create Class", font=self.FONT_NORMAL,
+                         height=36, fg_color="#0EA5E9", hover_color="#0284C7",
+                         command=self.create_class_dialog).pack(side="right")
         
         # Container
         container = ctk.CTkFrame(self, fg_color="transparent")
@@ -70,17 +73,22 @@ class CourseClassesView(ctk.CTkScrollableFrame):
     def create_class_card(self, cls):
         """Card cho mỗi lớp"""
         card = ctk.CTkFrame(self.class_list_frame, fg_color="#F8FAFC", corner_radius=8,
-                           border_width=2, border_color="transparent")
+                           border_width=1, border_color="#E2E8F0")
         card.pack(fill="x", pady=5)
+        
+        # Display: Course Name - Class Code
+        course_name = cls.get('course_name', 'Unknown Course')
+        class_code = cls.get('class_code', cls.get('group', 'N/A'))
+        display_text = f"{course_name} - {class_code}"
                 
-        btn = ctk.CTkButton(card, text=f"{cls.get('semester', 'N/A')} - {cls.get('group', 'N/A')}",
+        btn = ctk.CTkButton(card, text=display_text,
                            font=self.FONT_NORMAL, fg_color="transparent", text_color="#334155",
                            hover_color="#E0F2FE", anchor="w", height=50,
                            command=lambda: self.select_class(cls))
         btn.pack(fill="x", padx=10, pady=5)
         
         count = len(cls.get('student_ids', []))
-        ctk.CTkLabel(card, text=f"{count} students",
+        ctk.CTkLabel(card, text=f"{count} students • {cls.get('semester', 'N/A')}",
                     font=self.FONT_SMALL, text_color="#64748B").pack(padx=15, pady=(0, 10), anchor="w")
 
     def select_class(self, cls):
@@ -94,16 +102,20 @@ class CourseClassesView(ctk.CTkScrollableFrame):
         header = ctk.CTkFrame(self.detail_content, fg_color="transparent")
         header.pack(fill="x", pady=(0, 20))
         
-        ctk.CTkLabel(header, text=f"{cls['semester']} - {cls['group']}",
+        course_name = cls.get('course_name', 'Unknown Course')
+        class_code = cls.get('class_code', cls.get('group', 'N/A'))
+        ctk.CTkLabel(header, text=f"{course_name} - {class_code}",
                     font=self.FONT_TITLE, text_color="#1E293B").pack(side="left")
         
-        # Actions
-        actions = ctk.CTkFrame(header, fg_color="transparent")
-        actions.pack(side="right")
-        
-        ctk.CTkButton(actions, text="Import Students", font=self.FONT_SMALL,
-                     height=32, fg_color="#10B981", hover_color="#059669",
-                     command=self.import_students).pack(side="left", padx=5)
+        # Actions - Only show Import for ADMIN
+        user_role = api.user_info.get('role') if api.user_info else None
+        if user_role == "ADMIN":
+            actions = ctk.CTkFrame(header, fg_color="transparent")
+            actions.pack(side="right")
+            
+            ctk.CTkButton(actions, text="Import Students", font=self.FONT_SMALL,
+                         height=32, fg_color="#10B981", hover_color="#059669",
+                         command=self.import_students).pack(side="left", padx=5)
         
         # Info
         info_frame = ctk.CTkFrame(self.detail_content, fg_color="#F8FAFC", corner_radius=8)
@@ -114,7 +126,6 @@ class CourseClassesView(ctk.CTkScrollableFrame):
         
         items = [
             ("Semester", cls.get('semester', 'N/A')),
-            ("Group", cls.get('group', 'N/A')),
             ("Total Students", len(cls.get('student_ids', [])))
         ]
         
@@ -132,7 +143,7 @@ class CourseClassesView(ctk.CTkScrollableFrame):
                                                 corner_radius=8, height=300)
         students_frame.pack(fill="both", expand=True)
         
-        self.load_students(students_frame, cls['id'])
+        self.load_students(students_frame, cls.get('_id', cls.get('id')))
 
     def load_students(self, container, class_id):
         """Load danh sách sinh viên"""
@@ -184,7 +195,7 @@ class CourseClassesView(ctk.CTkScrollableFrame):
         
         # Course selection
         ctk.CTkLabel(dialog, text="Select Course:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
-        course_var = ctk.StringVar(value=courses[0]['id'])
+        course_var = ctk.StringVar(value=courses[0].get('_id', courses[0].get('id')))
         course_menu = ctk.CTkOptionMenu(dialog, variable=course_var,
                                         values=[f"{c['code']} - {c['name']}" for c in courses],
                                         font=self.FONT_NORMAL)
@@ -205,7 +216,7 @@ class CourseClassesView(ctk.CTkScrollableFrame):
             course_id = None
             for c in courses:
                 if f"{c['code']} - {c['name']}" == selected_text:
-                    course_id = c['id']
+                    course_id = c.get('_id', c.get('id'))
                     break
             
             semester = semester_entry.get().strip()
@@ -237,7 +248,8 @@ class CourseClassesView(ctk.CTkScrollableFrame):
         )
         
         if file_path:
-            success, result = api.import_course_students(self.selected_class['id'], file_path)
+            success, result = api.import_course_students(
+                self.selected_class.get('_id', self.selected_class.get('id')), file_path)
             if success:
                 msg = f"Imported {result.get('added_count', 0)} students"
                 if result.get('errors'):

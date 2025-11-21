@@ -65,7 +65,13 @@ class CourseGradesView(ctk.CTkScrollableFrame):
             return
         
         self.classes_data = classes
-        class_names = [f"{c['semester']} - {c['group']}" for c in classes]
+        # Display: Course Name - Class Code
+        class_names = []
+        for c in classes:
+            course_name = c.get('course_name', 'Unknown')
+            class_code = c.get('class_code', c.get('group', 'N/A'))
+            class_names.append(f"{course_name} - {class_code}")
+        
         self.class_menu.configure(values=class_names)
         if class_names:
             self.class_var.set(class_names[0])
@@ -77,10 +83,14 @@ class CourseGradesView(ctk.CTkScrollableFrame):
             return
         
         for cls in self.classes_data:
-            if f"{cls['semester']} - {cls['group']}" == selection:
+            course_name = cls.get('course_name', 'Unknown')
+            class_code = cls.get('class_code', cls.get('group', 'N/A'))
+            display_name = f"{course_name} - {class_code}"
+            
+            if display_name == selection:
                 self.selected_class = cls
                 self.import_btn.configure(state="normal")
-                self.load_grades(cls['id'])
+                self.load_grades(cls.get('_id', cls.get('id')))
                 break
 
     def load_grades(self, class_id):
@@ -99,7 +109,7 @@ class CourseGradesView(ctk.CTkScrollableFrame):
         header = ctk.CTkFrame(self.table_content, fg_color="#F1F5F9", corner_radius=0)
         header.pack(fill="x", pady=(0, 5))
         
-        cols = ["Student ID", "Midterm", "Final", "Assignment", "Total"]
+        cols = ["Student Name", "Midterm", "Final", "Assignment", "Total"]
         for col in cols:
             ctk.CTkLabel(header, text=col, font=("Ubuntu", 12, "bold"),
                         text_color="#475569").pack(side="left", expand=True, fill="x",
@@ -110,8 +120,11 @@ class CourseGradesView(ctk.CTkScrollableFrame):
             row = ctk.CTkFrame(self.table_content, fg_color="#F8FAFC", corner_radius=0)
             row.pack(fill="x", pady=2)
             
+            # Use student_name if available, otherwise show MSSV
+            student_display = grade.get('student_name', grade.get('student_mssv', 'N/A'))
+            
             values = [
-                grade.get('student_id', 'N/A')[:8] + "...",
+                student_display,
                 f"{grade.get('midterm_score', 'N/A')}",
                 f"{grade.get('final_score', 'N/A')}",
                 f"{grade.get('assignment_score', 'N/A')}",
@@ -134,12 +147,13 @@ class CourseGradesView(ctk.CTkScrollableFrame):
         )
         
         if file_path:
-            success, result = api.import_course_grades(self.selected_class['id'], file_path)
+            class_id = self.selected_class.get('_id', self.selected_class.get('id'))
+            success, result = api.import_course_grades(class_id, file_path)
             if success:
                 msg = f"Imported {result.get('success_count', 0)} grades"
                 if result.get('errors'):
                     msg += f"\n{len(result['errors'])} errors"
                 messagebox.showinfo("Import Result", msg)
-                self.load_grades(self.selected_class['id'])
+                self.load_grades(class_id)
             else:
                 messagebox.showerror("Error", f"Import failed: {result}")

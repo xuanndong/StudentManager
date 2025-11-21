@@ -101,7 +101,6 @@ class Sidebar(ctk.CTkFrame):
                 ("Users", "users", "group.png"),
                 ("Courses", "courses", "class.png"),
                 ("Admin Classes", "admin_classes", "layout.png"),
-                ("Forum", "forum", "forum.png"),
             ])
         elif role == "CVHT":
             menus.extend([
@@ -122,8 +121,10 @@ class Sidebar(ctk.CTkFrame):
                 ("My Grades", "student_grades", "grade.png"),
                 ("Forum", "forum", "forum.png"),
             ])
-            
-        menus.append(("Messages", "chat", "chat.png"))
+        
+        # Messages - only for non-ADMIN
+        if role != "ADMIN":
+            menus.append(("Messages", "chat", "chat.png"))
         
         # Tạo nút
         for text, key, icon in menus:

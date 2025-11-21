@@ -196,12 +196,32 @@ class APIClient:
     def import_administrative_students(self, class_id, file_path):
         """Import sinh viên vào lớp chính quy"""
         try:
+            # Read file content first
             with open(file_path, 'rb') as f:
-                files = {'file': (os.path.basename(file_path), f)}
-                url = f"{self.base_url}/administrative-classes/{class_id}/import-students"
-                res = self.session.post(url, files=files, headers={"Authorization": f"Bearer {self.token}"})
-                return (True, res.json()) if res.status_code == 200 else (False, res.json())
-        except Exception as e: return (False, str(e))
+                file_content = f.read()
+            
+            # Determine content type
+            if file_path.endswith('.csv'):
+                content_type = 'text/csv'
+            else:
+                content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            
+            # Send file
+            files = {'file': (os.path.basename(file_path), file_content, content_type)}
+            url = f"{self.base_url}/administrative-classes/{class_id}/import-students"
+            headers = {"Authorization": f"Bearer {self.token}"}
+            res = self.session.post(url, files=files, headers=headers)
+            
+            if res.status_code == 200:
+                return (True, res.json())
+            else:
+                try:
+                    error_detail = res.json()
+                except:
+                    error_detail = res.text
+                return (False, error_detail)
+        except Exception as e:
+            return (False, str(e))
 
     def remove_administrative_student(self, class_id, student_id):
         """Xóa sinh viên khỏi lớp chính quy"""
@@ -218,6 +238,16 @@ class APIClient:
         """Tạo môn học (ADMIN)"""
         res = self.request("POST", "/courses", json={"code": code, "name": name, "credits": credits})
         return (True, res.json()) if res and res.status_code == 200 else (False, "Error")
+    
+    def update_course(self, course_id, name, credits):
+        """Cập nhật môn học (ADMIN)"""
+        res = self.request("PUT", f"/courses/{course_id}", json={"name": name, "credits": credits})
+        return (True, res.json()) if res and res.status_code == 200 else (False, "Error")
+    
+    def delete_course(self, course_id):
+        """Xóa môn học (ADMIN)"""
+        res = self.request("DELETE", f"/courses/{course_id}")
+        return (True, None) if res and res.status_code == 200 else (False, "Error")
 
     # --- COURSE CLASSES (TEACHER) ---
     def get_my_course_classes(self, semester=None):
@@ -357,7 +387,7 @@ class APIClient:
     
     def search_user_by_phone(self, phone):
         """Tìm user theo số điện thoại"""
-        res = self.request("GET", f"/search-by-phone/{phone}")
+        res = self.request("GET", f"/users/search-by-phone/{phone}")
         return res.json() if res and res.status_code == 200 else None
     
     def create_conversation_by_phone(self, phone):

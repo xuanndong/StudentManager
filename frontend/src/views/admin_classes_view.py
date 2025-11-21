@@ -12,7 +12,7 @@ class AdminClassesView(ctk.CTkScrollableFrame):
         
         self.selected_class = None
         self.build_ui()
-        self.load_classes()
+        self.load_classes(auto_select_first=True)
 
     def build_ui(self):
         # Header với nút tạo lớp
@@ -52,7 +52,7 @@ class AdminClassesView(ctk.CTkScrollableFrame):
         ctk.CTkLabel(self.detail_content, text="Select a class to view details",
                     font=self.FONT_NORMAL, text_color="#94A3B8").pack(expand=True)
 
-    def load_classes(self):
+    def load_classes(self, auto_select_first=False):
         """Load danh sách lớp chính quy"""
         for w in self.class_list_frame.winfo_children():
             w.destroy()
@@ -66,6 +66,10 @@ class AdminClassesView(ctk.CTkScrollableFrame):
         
         for cls in classes:
             self.create_class_card(cls)
+        
+        # Auto select first class if requested
+        if auto_select_first and classes:
+            self.select_class(classes[0])
 
     def create_class_card(self, cls):
         """Tạo card cho mỗi lớp"""
@@ -169,7 +173,7 @@ class AdminClassesView(ctk.CTkScrollableFrame):
             
             ctk.CTkButton(row, text="Remove", font=self.FONT_SMALL, width=80,
                          height=28, fg_color="#EF4444", hover_color="#DC2626",
-                         command=lambda s=student: self.remove_student(s['id'])).pack(side="left", padx=10)
+                         command=lambda s=student: self.remove_student(s.get('_id', s.get('id')))).pack(side="left", padx=10)
 
     def create_class_dialog(self):
         """Dialog tạo lớp mới"""
@@ -199,11 +203,12 @@ class AdminClassesView(ctk.CTkScrollableFrame):
                 messagebox.showerror("Error", "Please fill all fields")
                 return
             
-            success, _ = api.create_administrative_class(name, year)
+            success, result = api.create_administrative_class(name, year)
             if success:
                 messagebox.showinfo("Success", "Class created successfully")
                 dialog.destroy()
-                self.load_classes()
+                # Reload and auto-select the new class
+                self.load_classes(auto_select_first=True)
             else:
                 messagebox.showerror("Error", "Failed to create class")
         
@@ -221,7 +226,8 @@ class AdminClassesView(ctk.CTkScrollableFrame):
         )
         
         if file_path:
-            success, result = api.import_administrative_students(self.selected_class['id'], file_path)
+            success, result = api.import_administrative_students(
+                self.selected_class.get('_id', self.selected_class.get('id')), file_path)
             if success:
                 msg = f"Imported {result.get('added_count', 0)} students"
                 if result.get('errors'):
@@ -237,8 +243,16 @@ class AdminClassesView(ctk.CTkScrollableFrame):
             return
         
         if messagebox.askyesno("Confirm", "Remove this student from class?"):
-            if api.remove_administrative_student(self.selected_class['id'], student_id):
+            class_id = self.selected_class.get('_id', self.selected_class.get('id'))
+            if api.remove_administrative_student(class_id, student_id):
                 messagebox.showinfo("Success", "Student removed")
-                self.select_class(self.selected_class)  # Refresh
+                # Reload class list to update student count
+                self.load_classes()
+                # Reload the selected class detail with fresh data
+                classes = api.get_my_administrative_classes()
+                for cls in classes:
+                    if cls.get('_id', cls.get('id')) == class_id:
+                        self.select_class(cls)
+                        break
             else:
                 messagebox.showerror("Error", "Failed to remove student")

@@ -18,6 +18,13 @@ class CourseCreate(CourseBase):
     grade_formula: GradeFormula | None = None  # Công thức tính điểm (mặc định 30-50-20)
 
 
+class CourseUpdate(BaseModel):
+    """Model for updating course (code cannot be changed)"""
+    name: str = Field(..., examples=["Lập trình Python"])
+    credits: int = Field(..., ge=1, le=6, examples=[3])
+    grade_formula: GradeFormula | None = None
+
+
 class CourseResponse(CourseBase):
     id: str = Field(..., alias="_id")
     grade_formula: GradeFormula | None = None

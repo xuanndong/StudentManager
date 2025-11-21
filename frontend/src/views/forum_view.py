@@ -95,6 +95,8 @@ class ForumView(ctk.CTkFrame):
             display_name = f"{class_data.get('semester', 'N/A')} - {class_data.get('class_code', class_data.get('group', 'N/A'))}"
         
         self.lbl_current_class.configure(text=display_name)
+        
+        # Enable New Post button when class is selected
         self.btn_new_post.configure(state="normal")
         
         # Clear feed cũ
@@ -104,7 +106,7 @@ class ForumView(ctk.CTkFrame):
         loading = ctk.CTkLabel(self.posts_area, text="Loading posts...", text_color="gray")
         loading.pack(pady=20)
         
-        threading.Thread(target=lambda: self.load_posts(loading)).start()
+        threading.Thread(target=lambda: self.load_posts(loading), daemon=True).start()
 
     def load_posts(self, loading_widget):
         if self._destroyed:
@@ -285,7 +287,7 @@ class ForumView(ctk.CTkFrame):
                 # Reload lại posts - tạo loading widget mới
                 loading = ctk.CTkLabel(self.posts_area, text="Refreshing...")
                 loading.pack(pady=20)
-                threading.Thread(target=lambda: self.load_posts(loading)).start()
+                threading.Thread(target=lambda: self.load_posts(loading), daemon=True).start()
 
         btn_send = ctk.CTkButton(input_row, text="➤", width=40, height=30, 
                                  fg_color="#3B82F6", command=send_comment)
@@ -341,7 +343,7 @@ class ForumView(ctk.CTkFrame):
                 # Reload posts properly
                 loading = ctk.CTkLabel(self.posts_area, text="Updating...")
                 loading.pack(pady=20)
-                threading.Thread(target=lambda: self.load_posts(loading)).start()
+                threading.Thread(target=lambda: self.load_posts(loading), daemon=True).start()
 
         ctk.CTkButton(dialog, text="Post Now", width=400, height=40, 
                      fg_color="#3B82F6", command=submit).pack(pady=10, padx=20)

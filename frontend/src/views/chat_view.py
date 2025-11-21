@@ -148,7 +148,7 @@ class ChatView(ctk.CTkFrame):
         self.msg_box = ctk.CTkScrollableFrame(self.right_frame, fg_color="transparent")
         self.msg_box.grid(row=1, column=0, sticky="nsew", padx=5, pady=5)
         
-        threading.Thread(target=self.load_history).start()
+        threading.Thread(target=self.load_history, daemon=True).start()
 
     def load_history(self):
         msgs = api.get_messages(self.current_conv_id)
@@ -224,28 +224,35 @@ class ChatView(ctk.CTkFrame):
                     font=(self.FONT_FAMILY, 16, "bold"), 
                     text_color="#1E293B").pack(pady=15)
         
-        # Tab selector
-        tab_frame = ctk.CTkFrame(dialog, fg_color="transparent")
-        tab_frame.pack(fill="x", padx=20, pady=(0, 10))
+        # Check user role
+        user_role = api.user_info.get('role') if api.user_info else None
         
-        selected_tab = ctk.StringVar(value="classmates")
-        
-        ctk.CTkRadioButton(tab_frame, text="My Classmates", variable=selected_tab, 
-                          value="classmates", font=(self.FONT_FAMILY, 12)).pack(side="left", padx=10)
-        ctk.CTkRadioButton(tab_frame, text="Search by Phone", variable=selected_tab, 
-                          value="phone", font=(self.FONT_FAMILY, 12)).pack(side="left", padx=10)
+        # Tab selector - only show classmates for non-ADMIN
+        if user_role != "ADMIN":
+            tab_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+            tab_frame.pack(fill="x", padx=20, pady=(0, 10))
+            
+            selected_tab = ctk.StringVar(value="classmates")
+            
+            ctk.CTkRadioButton(tab_frame, text="My Classmates", variable=selected_tab, 
+                              value="classmates", font=(self.FONT_FAMILY, 12)).pack(side="left", padx=10)
+            ctk.CTkRadioButton(tab_frame, text="Search by Phone", variable=selected_tab, 
+                              value="phone", font=(self.FONT_FAMILY, 12)).pack(side="left", padx=10)
+        else:
+            # ADMIN only has phone search
+            selected_tab = ctk.StringVar(value="phone")
         
         # Loading
         loading = ctk.CTkLabel(dialog, text="Loading...", text_color="#94A3B8")
         loading.pack(pady=20)
         
-        # Get classmates
-        admin_classes = api.get_my_administrative_classes()
+        # Get classmates (only for non-ADMIN)
         classmates = []
-        
-        if admin_classes:
-            class_id = admin_classes[0].get('id', admin_classes[0].get('_id'))
-            classmates = api.get_administrative_class_students(class_id)
+        if user_role != "ADMIN":
+            admin_classes = api.get_my_administrative_classes()
+            if admin_classes:
+                class_id = admin_classes[0].get('id', admin_classes[0].get('_id'))
+                classmates = api.get_administrative_class_students(class_id)
         
         loading.destroy()
         
@@ -272,6 +279,10 @@ class ChatView(ctk.CTkFrame):
             # Select user list based on tab
             if tab == "classmates":
                 users = classmates
+                # Filter classmates by name or phone
+                filtered = [u for u in users 
+                           if filter_text.lower() in u.get('full_name', '').lower() 
+                           or filter_text in u.get('phone', '')]
             else:  # phone search - search via API
                 if not filter_text:
                     ctk.CTkLabel(list_frame, text="Enter phone number to search\n(Example: 0987654321 for CVHT)",
@@ -279,14 +290,9 @@ class ChatView(ctk.CTkFrame):
                                 text_color="#94A3B8").pack(pady=30)
                     return
                 
-                # Search via API
+                # Search via API - no additional filtering needed
                 user = api.search_user_by_phone(filter_text)
-                users = [user] if user else []
-            
-            # Filter users
-            filtered = [u for u in users 
-                       if filter_text.lower() in u.get('full_name', '').lower() 
-                       or filter_text in u.get('phone', '')]
+                filtered = [user] if user else []
             
             # Exclude self
             current_user_id = api.user_info.get("_id")

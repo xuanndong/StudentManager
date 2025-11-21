@@ -16,7 +16,6 @@ from app.routers.stats import router as stats
 
 # Deprecated routers (kept for backward compatibility)
 from app.routers.classes import router as classes_deprecated
-from app.routers.grades import router as grades_deprecated
 
 load_dotenv()
 
@@ -49,7 +48,6 @@ app.include_router(stats)
 
 # Deprecated routers (for backward compatibility)
 app.include_router(classes_deprecated)
-app.include_router(grades_deprecated)
 
 
 @app.exception_handler(Exception)

@@ -26,7 +26,7 @@ class GradesView(ctk.CTkFrame):
             ctk.CTkButton(head, text="Import Excel", fg_color="#10B981", width=100, 
                           command=self.import_excel).pack(side="right", padx=10)
             self.class_map = {}
-            threading.Thread(target=self.load_classes).start()
+            threading.Thread(target=self.load_classes, daemon=True).start()
 
         # Table
         self.scroll = ctk.CTkScrollableFrame(self, fg_color="white", corner_radius=10)
@@ -63,7 +63,7 @@ class GradesView(ctk.CTkFrame):
             if isinstance(w, ctk.CTkFrame) and w != self.scroll.winfo_children()[0]: # Giữ lại header
                 w.destroy()
         
-        threading.Thread(target=self.fetch).start()
+        threading.Thread(target=self.fetch, daemon=True).start()
 
     def fetch(self):
         sem = self.sem_var.get()

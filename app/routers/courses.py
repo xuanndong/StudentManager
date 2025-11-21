@@ -7,7 +7,7 @@ import io
 import os
 from dotenv import load_dotenv
 
-from app.model.mcourse import CourseCreate, CourseResponse, CourseClassCreate, CourseClassResponse
+from app.model.mcourse import CourseCreate, CourseUpdate, CourseResponse, CourseClassCreate, CourseClassResponse
 from app.model.muser import UserResponse
 from app.dependencies import get_current_admin, get_current_teacher, get_current_user
 
@@ -147,7 +147,7 @@ async def get_my_course_classes(
         if course_id and ObjectId.is_valid(course_id):
             course = await db.courses.find_one({"_id": ObjectId(course_id)})
             if course:
-                c["course_name"] = course.get("name", "Empty") # check lai
+                c["course_name"] = course.get("name", "")
                 c["course_code"] = course.get("code", "")
                 c["credits"] = course.get("credits", 0)
     
@@ -310,3 +310,58 @@ async def remove_student_from_course_class(
     )
 
     return {"message": "Student removed from course class"}
+
+
+@router.put('/courses/{course_id}', response_model=CourseResponse)
+async def update_course(
+    course_id: str,
+    course_in: CourseUpdate,
+    request: Request,
+    current_user: dict = Depends(get_current_admin)
+):
+    """Admin cập nhật môn học"""
+    db: AsyncDatabase = request.app.state.db
+    
+    if not ObjectId.is_valid(course_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid course ID")
+    
+    course = await db.courses.find_one({"_id": ObjectId(course_id)})
+    if not course:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Course not found")
+    
+    # Update course (code cannot be changed)
+    update_data = {"name": course_in.name, "credits": course_in.credits}
+    if course_in.grade_formula:
+        update_data["grade_formula"] = course_in.grade_formula.model_dump()
+    
+    await db.courses.update_one({"_id": ObjectId(course_id)}, {"$set": update_data})
+    
+    updated_course = await db.courses.find_one({"_id": ObjectId(course_id)})
+    updated_course["_id"] = str(updated_course["_id"])
+    
+    return updated_course
+
+
+@router.delete('/courses/{course_id}')
+async def delete_course(
+    course_id: str,
+    request: Request,
+    current_user: dict = Depends(get_current_admin)
+):
+    """Admin xóa môn học"""
+    db: AsyncDatabase = request.app.state.db
+    
+    if not ObjectId.is_valid(course_id):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid course ID")
+    
+    course = await db.courses.find_one({"_id": ObjectId(course_id)})
+    if not course:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Course not found")
+    
+    # Delete course
+    await db.courses.delete_one({"_id": ObjectId(course_id)})
+    
+    # Optionally: Delete related course_classes
+    await db.course_classes.delete_many({"course_id": course_id})
+    
+    return {"message": "Course deleted successfully"}
