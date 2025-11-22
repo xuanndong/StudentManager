@@ -2,16 +2,16 @@
 
 ## 📋 Tổng quan
 
-**Đây ĐÚNG là một ứng dụng quản lý sinh viên hoàn chỉnh** với đầy đủ các tính năng:
+**Đây là một ứng dụng quản lý sinh viên hoàn chỉnh** với đầy đủ các tính năng:
 
-✅ **Quản lý người dùng** - 4 vai trò: ADMIN, CVHT, TEACHER, STUDENT  
-✅ **Quản lý lớp học** - Lớp chính quy (CVHT) và Lớp học phần (Teacher)  
-✅ **Quản lý môn học** - Danh mục môn học, tín chỉ, công thức điểm  
-✅ **Quản lý điểm** - Nhập điểm, tính GPA tự động, tổng kết học kỳ  
-✅ **Forum thảo luận** - Riêng biệt cho từng lớp  
-✅ **Chat real-time** - WebSocket, tìm kiếm theo SĐT  
-✅ **AI Assistant** - Chatbot hỗ trợ học tập với Gemini AI  
-✅ **Thống kê & báo cáo** - Dashboard, phân bố điểm, cảnh báo học vụ  
+- **Quản lý người dùng** - 4 vai trò: ADMIN, CVHT, TEACHER, STUDENT  
+- **Quản lý lớp học** - Lớp chính quy (CVHT) và Lớp học phần (Teacher)  
+- **Quản lý môn học** - Danh mục môn học, tín chỉ, công thức điểm  
+- **Quản lý điểm** - Nhập điểm, tính GPA tự động, tổng kết học kỳ  
+- **Forum thảo luận** - Riêng biệt cho từng lớp  
+- **Chat real-time** - WebSocket, tìm kiếm theo SĐT  
+- **AI Assistant** - Chatbot hỗ trợ học tập với Gemini AI  
+- **Thống kê & báo cáo** - Dashboard, phân bố điểm, cảnh báo học vụ  
 
 Hệ thống quản lý sinh viên với phân quyền đầy đủ cho ADMIN, CVHT (Cố vấn học tập), TEACHER và STUDENT.
 
