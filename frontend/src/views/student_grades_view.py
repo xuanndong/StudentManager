@@ -14,14 +14,14 @@ class StudentGradesView(ctk.CTkScrollableFrame):
 
     def build_ui(self):
         # Header
-        ctk.CTkLabel(self, text="My Academic Records", font=self.FONT_TITLE,
+        ctk.CTkLabel(self, text="Bảng điểm của tôi", font=self.FONT_TITLE,
                     text_color="#1E293B").pack(anchor="w", pady=(0, 20))
         
         # Semester Summary
         summary_frame = ctk.CTkFrame(self, fg_color="white", corner_radius=12)
         summary_frame.pack(fill="x", pady=(0, 20))
         
-        ctk.CTkLabel(summary_frame, text="Semester Summary", font=("Ubuntu", 16, "bold"),
+        ctk.CTkLabel(summary_frame, text="Tổng kết học kỳ", font=("Ubuntu", 16, "bold"),
                     text_color="#334155").pack(padx=20, pady=(20, 10), anchor="w")
         
         self.summary_content = ctk.CTkScrollableFrame(summary_frame, fg_color="transparent", height=200)
@@ -31,7 +31,7 @@ class StudentGradesView(ctk.CTkScrollableFrame):
         grades_frame = ctk.CTkFrame(self, fg_color="white", corner_radius=12)
         grades_frame.pack(fill="both", expand=True)
         
-        ctk.CTkLabel(grades_frame, text="Course Grades", font=("Ubuntu", 16, "bold"),
+        ctk.CTkLabel(grades_frame, text="Điểm các môn học", font=("Ubuntu", 16, "bold"),
                     text_color="#334155").pack(padx=20, pady=(20, 10), anchor="w")
         
         self.grades_content = ctk.CTkScrollableFrame(grades_frame, fg_color="transparent")
@@ -46,14 +46,14 @@ class StudentGradesView(ctk.CTkScrollableFrame):
             w.destroy()
         
         if not summaries:
-            ctk.CTkLabel(self.summary_content, text="No semester summary available",
+            ctk.CTkLabel(self.summary_content, text="Chưa có tổng kết học kỳ",
                         font=self.FONT_SMALL, text_color="#94A3B8").pack(pady=20)
         else:
             # Header
             header = ctk.CTkFrame(self.summary_content, fg_color="#F1F5F9", corner_radius=0)
             header.pack(fill="x", pady=(0, 5))
             
-            cols = ["Semester", "GPA", "Credits", "Passed", "Debt", "Warning"]
+            cols = ["Học kỳ", "Điểm TB", "Tín chỉ", "Đạt", "Nợ", "Cảnh báo"]
             for col in cols:
                 ctk.CTkLabel(header, text=col, font=("Ubuntu", 11, "bold"),
                             text_color="#475569").pack(side="left", expand=True, fill="x", padx=8, pady=8)
@@ -99,7 +99,7 @@ class StudentGradesView(ctk.CTkScrollableFrame):
             header = ctk.CTkFrame(self.grades_content, fg_color="#F1F5F9", corner_radius=0)
             header.pack(fill="x", pady=(0, 5))
             
-            cols = ["Course Class", "Midterm", "Final", "Assignment", "Total"]
+            cols = ["Môn học", "TX1", "TX2", "Cuối kỳ", "Tổng kết"]
             for col in cols:
                 ctk.CTkLabel(header, text=col, font=("Ubuntu", 11, "bold"),
                             text_color="#475569").pack(side="left", expand=True, fill="x", padx=10, pady=8)
@@ -109,16 +109,14 @@ class StudentGradesView(ctk.CTkScrollableFrame):
                 row = ctk.CTkFrame(self.grades_content, fg_color="#F8FAFC", corner_radius=0)
                 row.pack(fill="x", pady=2)
                 
-                # Display course name instead of ID
-                course_name = grade.get('course_name', grade.get('class_code', 'Unknown'))
-                semester = grade.get('semester', '')
-                display_text = f"{course_name} ({semester})" if semester else course_name
+                # Display course name only (no semester, no class_code)
+                course_name = grade.get('course_name', 'Unknown')
                 
-                ctk.CTkLabel(row, text=display_text,
+                ctk.CTkLabel(row, text=course_name,
                             font=self.FONT_SMALL, text_color="#334155").pack(side="left", expand=True,
                                                                              fill="x", padx=10, pady=8)
                 
-                for key in ['midterm_score', 'final_score', 'assignment_score', 'total_score']:
+                for key in ['regular_score_1', 'regular_score_2', 'final_score', 'total_score']:
                     val = grade.get(key)
                     text = f"{val:.1f}" if val is not None else "—"
                     color = "#10B981" if val and val >= 8.0 else "#F59E0B" if val and val >= 5.0 else "#EF4444" if val else "#94A3B8"

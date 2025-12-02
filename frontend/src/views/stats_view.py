@@ -14,14 +14,14 @@ class StatsView(ctk.CTkFrame):
         # Header
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.pack(fill="x", pady=(0, 20))
-        ctk.CTkLabel(header, text="Class Statistics", font=(self.FONT, 24, "bold"), text_color="#334155").pack(side="left")
+        ctk.CTkLabel(header, text="Thống kê lớp học", font=(self.FONT, 24, "bold"), text_color="#334155").pack(side="left")
         
         # Controls
         controls = ctk.CTkFrame(header, fg_color="transparent")
         controls.pack(side="right")
         
         self.class_map = {}
-        self.cb_class = ctk.CTkComboBox(controls, values=["Loading..."], width=200, command=self.on_class_change)
+        self.cb_class = ctk.CTkComboBox(controls, values=["Đang tải..."], width=200, command=self.on_class_change)
         self.cb_class.pack(side="left", padx=10)
         
         self.sem_var = ctk.StringVar(value="2025-1")
@@ -64,10 +64,10 @@ class StatsView(ctk.CTkFrame):
             widget.destroy()
         
         if not self.selected_class_id:
-            ctk.CTkLabel(self.content, text="Please select a class").pack(pady=20)
+            ctk.CTkLabel(self.content, text="Vui lòng chọn một lớp").pack(pady=20)
             return
         
-        loading = ctk.CTkLabel(self.content, text="Loading statistics...", text_color="gray")
+        loading = ctk.CTkLabel(self.content, text="Đang tải thống kê...", text_color="gray")
         loading.grid(row=0, column=1, pady=20)
         
         threading.Thread(target=lambda: self.load_stats(loading), daemon=True).start()
@@ -89,19 +89,19 @@ class StatsView(ctk.CTkFrame):
             pass  # Already destroyed
         
         if not stats:
-            ctk.CTkLabel(self.content, text="No data available").grid(row=0, column=1, pady=20)
+            ctk.CTkLabel(self.content, text="Không có dữ liệu").grid(row=0, column=1, pady=20)
             return
         
         # Cards
-        self.card(0, "Total Students", stats.get('total_students', 0), "#3B82F6")
-        self.card(1, "Academic Warnings", stats.get('warning_count', 0), "#EF4444")
-        self.card(2, "Tuition Debt", stats.get('debt_count', 0), "#F59E0B")
+        self.card(0, "Tổng số sinh viên", stats.get('total_students', 0), "#3B82F6")
+        self.card(1, "Cảnh báo học vụ", stats.get('warning_count', 0), "#EF4444")
+        self.card(2, "Nợ học phí", stats.get('debt_count', 0), "#F59E0B")
         
         # GPA Distribution Chart
         chart_frame = ctk.CTkFrame(self.content, fg_color="white", corner_radius=15)
         chart_frame.grid(row=1, column=0, columnspan=3, sticky="nsew", pady=20, padx=10)
         
-        ctk.CTkLabel(chart_frame, text="GPA Distribution", font=(self.FONT, 16, "bold"), 
+        ctk.CTkLabel(chart_frame, text="Phân bố điểm trung bình", font=(self.FONT, 16, "bold"), 
                      text_color="#475569").pack(pady=15)
         
         dist = stats.get('gpa_distribution', {})

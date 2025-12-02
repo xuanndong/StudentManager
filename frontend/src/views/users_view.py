@@ -20,7 +20,7 @@ class UsersView(ctk.CTkFrame):
         self.table_header = ctk.CTkFrame(table_container, fg_color="#F8FAFC", corner_radius=0)
         self.table_header.pack(fill="x", padx=1, pady=1)
         
-        cols = [("MSSV", 1.2), ("Full Name", 1.5), ("Email", 2), ("Role", 0.8), ("Status", 0.8), ("Actions", 1)]
+        cols = [("MSSV", 1.2), ("Họ và tên", 1.5), ("Email", 2), ("Vai trò", 0.8), ("Trạng thái", 0.8), ("Thao tác", 1)]
         for col, weight in cols:
             ctk.CTkLabel(self.table_header, text=col, font=(self.FONT, 12, "bold"), 
                          text_color="#475569").pack(side="left", fill="x", expand=True, padx=10, pady=12)
@@ -47,19 +47,19 @@ class UsersView(ctk.CTkFrame):
         title_frame = ctk.CTkFrame(content, fg_color="transparent")
         title_frame.pack(side="left")
         
-        ctk.CTkLabel(title_frame, text="Group", font=(self.FONT, 28)).pack(side="left", padx=(0, 10))
-        ctk.CTkLabel(title_frame, text="User Management", 
+        ctk.CTkLabel(title_frame, text="Nhóm", font=(self.FONT, 28)).pack(side="left", padx=(0, 10))
+        ctk.CTkLabel(title_frame, text="Quản lý người dùng", 
                     font=(self.FONT, 24, "bold"), text_color="#1E293B").pack(side="left")
         
         # Filters
         filter_frame = ctk.CTkFrame(content, fg_color="transparent")
         filter_frame.pack(side="right")
         
-        ctk.CTkLabel(filter_frame, text="Filter by role:", 
+        ctk.CTkLabel(filter_frame, text="Lọc theo vai trò:", 
                     font=(self.FONT, 12), text_color="#64748B").pack(side="left", padx=(0, 10))
         
-        self.role_var = ctk.StringVar(value="ALL")
-        self.cb_role = ctk.CTkComboBox(filter_frame, values=["ALL", "STUDENT", "CVHT", "ADMIN"],
+        self.role_var = ctk.StringVar(value="TẤT CẢ")
+        self.cb_role = ctk.CTkComboBox(filter_frame, values=["TẤT CẢ", "STUDENT", "CVHT", "ADMIN"],
                                        width=130, height=38, variable=self.role_var, 
                                        command=self.refresh, corner_radius=10,
                                        fg_color="#F8FAFC", border_color="#E2E8F0")
@@ -74,13 +74,13 @@ class UsersView(ctk.CTkFrame):
         for widget in self.scroll.winfo_children():
             widget.destroy()
         
-        loading = ctk.CTkLabel(self.scroll, text="Loading...", text_color="gray")
+        loading = ctk.CTkLabel(self.scroll, text="Đang tải...", text_color="gray")
         loading.pack(pady=20)
         
         threading.Thread(target=lambda: self.load(loading), daemon=True).start()
 
     def load(self, loading_lbl):
-        role = None if self.role_var.get() == "ALL" else self.role_var.get()
+        role = None if self.role_var.get() == "TẤT CẢ" else self.role_var.get()
         users = api.get_all_users(role)
         self.after(0, lambda: self.render(users, loading_lbl))
 
@@ -88,7 +88,7 @@ class UsersView(ctk.CTkFrame):
         loading_lbl.destroy()
         
         if not users:
-            ctk.CTkLabel(self.scroll, text="No users found").pack(pady=20)
+            ctk.CTkLabel(self.scroll, text="Không tìm thấy người dùng").pack(pady=20)
             return
         
         for user in users:
@@ -119,7 +119,7 @@ class UsersView(ctk.CTkFrame):
         
         # Status badge
         is_active = user.get('is_active', True)
-        status_text = "● Active" if is_active else "○ Inactive"
+        status_text = "● Hoạt động" if is_active else "○ Không hoạt động"
         status_color = "#10B981" if is_active else "#94A3B8"
         ctk.CTkLabel(row, text=status_text, font=(self.FONT, 11, "bold"), 
                     text_color=status_color).pack(side="left", fill="x", expand=True, padx=10)
@@ -128,19 +128,19 @@ class UsersView(ctk.CTkFrame):
         action_frame = ctk.CTkFrame(row, fg_color="transparent")
         action_frame.pack(side="left", fill="x", expand=True, padx=10)
         
-        ctk.CTkButton(action_frame, text="Edit", width=35, height=35, 
+        ctk.CTkButton(action_frame, text="Sửa", width=35, height=35, 
                      fg_color="#E0F2FE", hover_color="#BAE6FD",
                      text_color="#0284C7", corner_radius=8,
                      command=lambda u=user: self.edit_user(u)).pack(side="left", padx=3)
         
-        ctk.CTkButton(action_frame, text="Delete", width=35, height=35,
+        ctk.CTkButton(action_frame, text="Xóa", width=35, height=35,
                      fg_color="#FEE2E2", hover_color="#FECACA",
                      text_color="#DC2626", corner_radius=8,
                      command=lambda u=user: self.delete_user(u)).pack(side="left", padx=3)
 
     def edit_user(self, user):
         dialog = ctk.CTkToplevel(self)
-        dialog.title(f"Edit User: {user['mssv']}")
+        dialog.title(f"Sửa người dùng: {user['mssv']}")
         dialog.geometry("480x650")
         dialog.transient(self)
         dialog.configure(fg_color="white")
@@ -150,7 +150,7 @@ class UsersView(ctk.CTkFrame):
         header = ctk.CTkFrame(dialog, fg_color="#6366F1", corner_radius=0)
         header.pack(fill="x")
         
-        ctk.CTkLabel(header, text="Edit User", font=(self.FONT, 20, "bold"), 
+        ctk.CTkLabel(header, text="Sửa người dùng", font=(self.FONT, 20, "bold"), 
                     text_color="white").pack(pady=25)
         
         # Form
@@ -158,7 +158,7 @@ class UsersView(ctk.CTkFrame):
         form.pack(fill="both", expand=True, padx=30, pady=30)
         
         # MSSV (readonly)
-        ctk.CTkLabel(form, text="Student ID (MSSV)", font=(self.FONT, 12, "bold"), 
+        ctk.CTkLabel(form, text="Mã sinh viên (MSSV)", font=(self.FONT, 12, "bold"), 
                     text_color="#64748B").pack(anchor="w", pady=(0, 5))
         mssv_display = ctk.CTkEntry(form, height=45, font=(self.FONT, 13),
                                    fg_color="#F1F5F9", border_color="#E2E8F0", state="disabled")
@@ -166,7 +166,7 @@ class UsersView(ctk.CTkFrame):
         mssv_display.pack(fill="x", pady=(0, 15))
         
         # Full Name
-        ctk.CTkLabel(form, text="Full Name", font=(self.FONT, 12, "bold"), 
+        ctk.CTkLabel(form, text="Họ và tên", font=(self.FONT, 12, "bold"), 
                     text_color="#1E293B").pack(anchor="w", pady=(0, 5))
         entry_name = ctk.CTkEntry(form, height=45, font=(self.FONT, 13),
                                  border_color="#E2E8F0", fg_color="#F8FAFC")
@@ -174,7 +174,7 @@ class UsersView(ctk.CTkFrame):
         entry_name.pack(fill="x", pady=(0, 15))
         
         # Email
-        ctk.CTkLabel(form, text="Email Address", font=(self.FONT, 12, "bold"), 
+        ctk.CTkLabel(form, text="Địa chỉ email", font=(self.FONT, 12, "bold"), 
                     text_color="#1E293B").pack(anchor="w", pady=(0, 5))
         entry_email = ctk.CTkEntry(form, height=45, font=(self.FONT, 13),
                                   border_color="#E2E8F0", fg_color="#F8FAFC")
@@ -182,7 +182,7 @@ class UsersView(ctk.CTkFrame):
         entry_email.pack(fill="x", pady=(0, 15))
         
         # Role
-        ctk.CTkLabel(form, text="Role", font=(self.FONT, 12, "bold"), 
+        ctk.CTkLabel(form, text="Vai trò", font=(self.FONT, 12, "bold"), 
                     text_color="#1E293B").pack(anchor="w", pady=(0, 5))
         role_var = ctk.StringVar(value=user['role'])
         cb_role = ctk.CTkComboBox(form, values=["STUDENT", "CVHT", "ADMIN"], 
@@ -195,7 +195,7 @@ class UsersView(ctk.CTkFrame):
         status_frame = ctk.CTkFrame(form, fg_color="#F8FAFC", corner_radius=10)
         status_frame.pack(fill="x", pady=(0, 20))
         
-        ctk.CTkCheckBox(status_frame, text="Account is active", variable=active_var, 
+        ctk.CTkCheckBox(status_frame, text="Tài khoản đang hoạt động", variable=active_var, 
                        font=(self.FONT, 13), fg_color="#10B981", hover_color="#059669").pack(padx=15, pady=15)
         
         def submit():
@@ -207,41 +207,41 @@ class UsersView(ctk.CTkFrame):
             }
             
             if not data["full_name"] or not data["email"]:
-                messagebox.showwarning("Missing Data", "Please fill in all required fields")
+                messagebox.showwarning("Thiếu dữ liệu", "Vui lòng điền đầy đủ các trường bắt buộc")
                 return
             
             success, msg = api.update_user(user['_id'], data)
             if success:
-                messagebox.showinfo("Success", "User updated successfully!")
+                messagebox.showinfo("Thành công", "Cập nhật người dùng thành công!")
                 dialog.destroy()
                 self.refresh(None)
             else:
-                messagebox.showerror("Error", f"Failed to update user:\n{msg}")
+                messagebox.showerror("Lỗi", f"Cập nhật người dùng thất bại:\n{msg}")
         
         # Buttons
         btn_frame = ctk.CTkFrame(form, fg_color="transparent")
         btn_frame.pack(fill="x")
         
-        ctk.CTkButton(btn_frame, text="Cancel", height=45,
+        ctk.CTkButton(btn_frame, text="Hủy", height=45,
                      fg_color="#F1F5F9", hover_color="#E2E8F0",
                      text_color="#64748B", corner_radius=10,
                      command=dialog.destroy).pack(side="left", fill="x", expand=True, padx=(0, 10))
         
-        ctk.CTkButton(btn_frame, text="Save Changes", height=45,
+        ctk.CTkButton(btn_frame, text="Lưu thay đổi", height=45,
                      fg_color="#6366F1", hover_color="#4F46E5",
                      corner_radius=10, font=(self.FONT, 14, "bold"),
                      command=submit).pack(side="right", fill="x", expand=True)
 
     def delete_user(self, user):
-        confirm_msg = f"Are you sure you want to delete this user?\n\n"
+        confirm_msg = f"Bạn có chắc muốn xóa người dùng này?\n\n"
         confirm_msg += f"MSSV: {user['mssv']}\n"
-        confirm_msg += f"Name: {user.get('full_name', 'N/A')}\n\n"
-        confirm_msg += "This action cannot be undone!"
+        confirm_msg += f"Tên: {user.get('full_name', 'N/A')}\n\n"
+        confirm_msg += "Hành động này không thể hoàn tác!"
         
-        if messagebox.askyesno("Confirm Deletion", confirm_msg):
+        if messagebox.askyesno("Xác nhận xóa", confirm_msg):
             success, msg = api.delete_user(user['_id'])
             if success:
-                messagebox.showinfo("Success", "User deleted successfully")
+                messagebox.showinfo("Thành công", "Xóa người dùng thành công")
                 self.refresh(None)
             else:
-                messagebox.showerror("Error", f"Failed to delete user:\n{msg}")
+                messagebox.showerror("Lỗi", f"Xóa người dùng thất bại:\n{msg}")

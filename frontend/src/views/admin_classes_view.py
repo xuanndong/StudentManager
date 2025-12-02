@@ -1,5 +1,5 @@
 import customtkinter as ctk
-from tkinter import filedialog, messagebox
+from tkinter import messagebox
 from src.api.client import api
 
 class AdminClassesView(ctk.CTkScrollableFrame):
@@ -19,10 +19,10 @@ class AdminClassesView(ctk.CTkScrollableFrame):
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.pack(fill="x", pady=(0, 20))
         
-        ctk.CTkLabel(header, text="Administrative Classes", font=self.FONT_TITLE, 
+        ctk.CTkLabel(header, text="Lớp chính quy", font=self.FONT_TITLE, 
                     text_color="#1E293B").pack(side="left")
         
-        ctk.CTkButton(header, text="+ Create Class", font=self.FONT_NORMAL,
+        ctk.CTkButton(header, text="+ Tạo lớp mới", font=self.FONT_NORMAL,
                      height=36, fg_color="#0EA5E9", hover_color="#0284C7",
                      command=self.create_class_dialog).pack(side="right")
         
@@ -36,7 +36,7 @@ class AdminClassesView(ctk.CTkScrollableFrame):
         left_frame = ctk.CTkFrame(container, fg_color="white", corner_radius=12)
         left_frame.grid(row=0, column=0, sticky="nsew", padx=(0, 10))
         
-        ctk.CTkLabel(left_frame, text="My Classes", font=self.FONT_TITLE,
+        ctk.CTkLabel(left_frame, text="Lớp của tôi", font=self.FONT_TITLE,
                     text_color="#334155").pack(padx=20, pady=15, anchor="w")
         
         self.class_list_frame = ctk.CTkScrollableFrame(left_frame, fg_color="transparent")
@@ -49,7 +49,7 @@ class AdminClassesView(ctk.CTkScrollableFrame):
         self.detail_content = ctk.CTkFrame(self.detail_frame, fg_color="transparent")
         self.detail_content.pack(fill="both", expand=True, padx=20, pady=20)
         
-        ctk.CTkLabel(self.detail_content, text="Select a class to view details",
+        ctk.CTkLabel(self.detail_content, text="Chọn một lớp để xem chi tiết",
                     font=self.FONT_NORMAL, text_color="#94A3B8").pack(expand=True)
 
     def load_classes(self, auto_select_first=False):
@@ -60,7 +60,7 @@ class AdminClassesView(ctk.CTkScrollableFrame):
         classes = api.get_my_administrative_classes()
         
         if not classes:
-            ctk.CTkLabel(self.class_list_frame, text="No classes yet",
+            ctk.CTkLabel(self.class_list_frame, text="Chưa có lớp nào",
                         font=self.FONT_SMALL, text_color="#94A3B8").pack(pady=20)
             return
         
@@ -84,7 +84,7 @@ class AdminClassesView(ctk.CTkScrollableFrame):
         
         # Hiển thị số sinh viên
         count = len(cls.get('student_ids', []))
-        ctk.CTkLabel(card, text=f"{count} students • {cls.get('academic_year', 'N/A')}",
+        ctk.CTkLabel(card, text=f"{count} sinh viên • {cls.get('academic_year', 'N/A')}",
                     font=self.FONT_SMALL, text_color="#64748B").pack(padx=15, pady=(0, 10), anchor="w")
 
     def select_class(self, cls):
@@ -102,13 +102,6 @@ class AdminClassesView(ctk.CTkScrollableFrame):
                     text_color="#1E293B").pack(side="left")
         
         # Actions
-        actions = ctk.CTkFrame(header, fg_color="transparent")
-        actions.pack(side="right")
-        
-        ctk.CTkButton(actions, text="Import Students", font=self.FONT_SMALL,
-                     height=32, fg_color="#10B981", hover_color="#059669",
-                     command=self.import_students).pack(side="left", padx=5)
-        
         # Info - Responsive layout
         info_frame = ctk.CTkFrame(self.detail_content, fg_color="#F8FAFC", corner_radius=8)
         info_frame.pack(fill="x", pady=(0, 15))
@@ -118,9 +111,9 @@ class AdminClassesView(ctk.CTkScrollableFrame):
         info_grid.grid_columnconfigure(1, weight=1)
         
         items = [
-            ("Academic Year", cls.get('academic_year', 'N/A')),
-            ("Total Students", len(cls.get('student_ids', []))),
-            ("Class ID", cls.get('id', cls.get('_id', 'N/A'))[:8] + "...")
+            ("Niên khóa", cls.get('academic_year', 'N/A')),
+            ("Tổng số sinh viên", len(cls.get('student_ids', []))),
+            ("Mã lớp", cls.get('id', cls.get('_id', 'N/A'))[:8] + "...")
         ]
         
         for i, (label, value) in enumerate(items):
@@ -130,7 +123,7 @@ class AdminClassesView(ctk.CTkScrollableFrame):
                         text_color="#334155", anchor="w", wraplength=250).grid(row=i, column=1, sticky="w", pady=5)
         
         # Student list
-        ctk.CTkLabel(self.detail_content, text="Students", font=("Ubuntu", 16, "bold"),
+        ctk.CTkLabel(self.detail_content, text="Sinh viên", font=("Ubuntu", 16, "bold"),
                     text_color="#334155").pack(anchor="w", pady=(10, 10))
         
         students_frame = ctk.CTkScrollableFrame(self.detail_content, fg_color="#F8FAFC",
@@ -144,7 +137,7 @@ class AdminClassesView(ctk.CTkScrollableFrame):
         students = api.get_administrative_class_students(class_id)
         
         if not students:
-            ctk.CTkLabel(container, text="No students in this class",
+            ctk.CTkLabel(container, text="Chưa có sinh viên trong lớp",
                         font=self.FONT_SMALL, text_color="#94A3B8").pack(pady=20)
             return
         
@@ -152,7 +145,7 @@ class AdminClassesView(ctk.CTkScrollableFrame):
         header = ctk.CTkFrame(container, fg_color="#E2E8F0", corner_radius=0)
         header.pack(fill="x", padx=5, pady=5)
         
-        cols = [("MSSV", 0.2), ("Full Name", 0.4), ("Email", 0.3), ("Action", 0.1)]
+        cols = [("MSSV", 0.2), ("Họ và tên", 0.4), ("Email", 0.3), ("Thao tác", 0.1)]
         for col, weight in cols:
             ctk.CTkLabel(header, text=col, font=("Ubuntu", 12, "bold"),
                         text_color="#475569").pack(side="left", expand=True, fill="x", 
@@ -171,28 +164,28 @@ class AdminClassesView(ctk.CTkScrollableFrame):
             ctk.CTkLabel(row, text=student.get('email', 'N/A'), font=self.FONT_SMALL,
                         text_color="#64748B").pack(side="left", expand=True, fill="x", padx=10, pady=10)
             
-            ctk.CTkButton(row, text="Remove", font=self.FONT_SMALL, width=80,
+            ctk.CTkButton(row, text="Xóa", font=self.FONT_SMALL, width=80,
                          height=28, fg_color="#EF4444", hover_color="#DC2626",
                          command=lambda s=student: self.remove_student(s.get('_id', s.get('id')))).pack(side="left", padx=10)
 
     def create_class_dialog(self):
         """Dialog tạo lớp mới"""
         dialog = ctk.CTkToplevel(self)
-        dialog.title("Create Administrative Class")
+        dialog.title("Tạo lớp chính quy")
         dialog.geometry("450x300")
         dialog.transient(self)
         # Wait for dialog to be visible before grab_set
         dialog.update_idletasks()
         dialog.after(10, dialog.grab_set)
         
-        ctk.CTkLabel(dialog, text="Create New Class", font=self.FONT_TITLE).pack(pady=20)
+        ctk.CTkLabel(dialog, text="Tạo lớp mới", font=self.FONT_TITLE).pack(pady=20)
         
-        ctk.CTkLabel(dialog, text="Class Name:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
-        name_entry = ctk.CTkEntry(dialog, placeholder_text="e.g., CNTT-K17", font=self.FONT_NORMAL)
+        ctk.CTkLabel(dialog, text="Tên lớp:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
+        name_entry = ctk.CTkEntry(dialog, placeholder_text="VD: CNTT-K17", font=self.FONT_NORMAL)
         name_entry.pack(fill="x", padx=30, pady=(5, 15))
         
-        ctk.CTkLabel(dialog, text="Academic Year:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
-        year_entry = ctk.CTkEntry(dialog, placeholder_text="e.g., 2020-2024", font=self.FONT_NORMAL)
+        ctk.CTkLabel(dialog, text="Niên khóa:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
+        year_entry = ctk.CTkEntry(dialog, placeholder_text="VD: 2020-2024", font=self.FONT_NORMAL)
         year_entry.pack(fill="x", padx=30, pady=(5, 20))
         
         def submit():
@@ -200,52 +193,30 @@ class AdminClassesView(ctk.CTkScrollableFrame):
             year = year_entry.get().strip()
             
             if not name or not year:
-                messagebox.showerror("Error", "Please fill all fields")
+                messagebox.showerror("Lỗi", "Vui lòng điền đầy đủ thông tin")
                 return
             
             success, result = api.create_administrative_class(name, year)
             if success:
-                messagebox.showinfo("Success", "Class created successfully")
+                messagebox.showinfo("Thành công", "Tạo lớp thành công")
                 dialog.destroy()
                 # Reload and auto-select the new class
                 self.load_classes(auto_select_first=True)
             else:
-                messagebox.showerror("Error", "Failed to create class")
+                messagebox.showerror("Lỗi", "Tạo lớp thất bại")
         
-        ctk.CTkButton(dialog, text="Create", font=self.FONT_NORMAL, height=40,
+        ctk.CTkButton(dialog, text="Tạo", font=self.FONT_NORMAL, height=40,
                      fg_color="#0EA5E9", command=submit).pack(fill="x", padx=30, pady=10)
-
-    def import_students(self):
-        """Import sinh viên từ file"""
-        if not self.selected_class:
-            return
-        
-        file_path = filedialog.askopenfilename(
-            title="Select Excel/CSV file",
-            filetypes=[("Excel files", "*.xlsx *.xls"), ("CSV files", "*.csv")]
-        )
-        
-        if file_path:
-            success, result = api.import_administrative_students(
-                self.selected_class.get('_id', self.selected_class.get('id')), file_path)
-            if success:
-                msg = f"Imported {result.get('added_count', 0)} students"
-                if result.get('errors'):
-                    msg += f"\n{len(result['errors'])} errors"
-                messagebox.showinfo("Import Result", msg)
-                self.select_class(self.selected_class)  # Refresh
-            else:
-                messagebox.showerror("Error", f"Import failed: {result}")
 
     def remove_student(self, student_id):
         """Xóa sinh viên khỏi lớp"""
         if not self.selected_class:
             return
         
-        if messagebox.askyesno("Confirm", "Remove this student from class?"):
+        if messagebox.askyesno("Xác nhận", "Xóa sinh viên này khỏi lớp?"):
             class_id = self.selected_class.get('_id', self.selected_class.get('id'))
             if api.remove_administrative_student(class_id, student_id):
-                messagebox.showinfo("Success", "Student removed")
+                messagebox.showinfo("Thành công", "Đã xóa sinh viên")
                 # Reload class list to update student count
                 self.load_classes()
                 # Reload the selected class detail with fresh data
@@ -255,4 +226,4 @@ class AdminClassesView(ctk.CTkScrollableFrame):
                         self.select_class(cls)
                         break
             else:
-                messagebox.showerror("Error", "Failed to remove student")
+                messagebox.showerror("Lỗi", "Xóa sinh viên thất bại")

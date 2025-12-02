@@ -113,8 +113,10 @@ class ClassesView(ctk.CTkScrollableFrame):
         if 'name' in data:
             class_name = data['name']
         else:
-            # Ưu tiên class_code, fallback về group
-            class_name = f"{data.get('semester', 'N/A')} - {data.get('class_code', data.get('group', 'N/A'))}"
+            # Course class - hiển thị tên môn học và mã lớp
+            course_name = data.get('course_name', 'Unknown Course')
+            class_code = data.get('class_code', 'N/A')
+            class_name = f"{course_name} - {class_code}"
         
         ctk.CTkLabel(box, text=class_name, font=(self.FONT, 18, "bold"), 
                      text_color="#1E293B", anchor="w", wraplength=200).pack(fill="x")
@@ -212,10 +214,11 @@ class ClassDetailDialog(ctk.CTkToplevel):
             class_name = self.data['name']
             initial = class_name[0]
         else:
-            # Ưu tiên class_code, fallback về group
-            display_code = self.data.get('class_code', self.data.get('group', 'N/A'))
-            class_name = f"{self.data.get('semester', 'N/A')} - {display_code}"
-            initial = self.data.get('semester', 'C')[0]
+            # Course class - hiển thị tên môn học và mã lớp
+            course_name = self.data.get('course_name', 'Unknown Course')
+            class_code = self.data.get('class_code', 'N/A')
+            class_name = f"{course_name} - {class_code}"
+            initial = course_name[0] if course_name else 'C'
         
         ctk.CTkLabel(icon_bg, text=initial, font=(self.FONT, 30, "bold"), text_color="#3B82F6").place(relx=0.5, rely=0.5, anchor="center")
 

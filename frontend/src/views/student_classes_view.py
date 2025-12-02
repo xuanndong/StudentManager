@@ -14,14 +14,14 @@ class StudentClassesView(ctk.CTkScrollableFrame):
 
     def build_ui(self):
         # Header
-        ctk.CTkLabel(self, text="My Classes", font=self.FONT_TITLE,
+        ctk.CTkLabel(self, text="Lớp học của tôi", font=self.FONT_TITLE,
                     text_color="#1E293B").pack(anchor="w", pady=(0, 20))
         
         # Administrative Class
         admin_frame = ctk.CTkFrame(self, fg_color="white", corner_radius=12)
         admin_frame.pack(fill="x", pady=(0, 20))
         
-        ctk.CTkLabel(admin_frame, text="Administrative Class", font=("Ubuntu", 16, "bold"),
+        ctk.CTkLabel(admin_frame, text="Lớp chính quy", font=("Ubuntu", 16, "bold"),
                     text_color="#334155").pack(padx=20, pady=(20, 10), anchor="w")
         
         self.admin_content = ctk.CTkFrame(admin_frame, fg_color="transparent")
@@ -31,7 +31,7 @@ class StudentClassesView(ctk.CTkScrollableFrame):
         course_frame = ctk.CTkFrame(self, fg_color="white", corner_radius=12)
         course_frame.pack(fill="both", expand=True)
         
-        ctk.CTkLabel(course_frame, text="Enrolled Course Classes", font=("Ubuntu", 16, "bold"),
+        ctk.CTkLabel(course_frame, text="Lớp học phần đã đăng ký", font=("Ubuntu", 16, "bold"),
                     text_color="#334155").pack(padx=20, pady=(20, 10), anchor="w")
         
         self.course_content = ctk.CTkScrollableFrame(course_frame, fg_color="transparent")
@@ -43,7 +43,7 @@ class StudentClassesView(ctk.CTkScrollableFrame):
         
         # Create dialog
         dialog = ctk.CTkToplevel(self)
-        dialog.title("My Classmates")
+        dialog.title("Bạn cùng lớp")
         dialog.geometry("600x500")
         dialog.transient(self)
         dialog.configure(fg_color="white")
@@ -57,11 +57,11 @@ class StudentClassesView(ctk.CTkScrollableFrame):
         
         ctk.CTkLabel(header, text=f"{class_name}",
                     font=("Ubuntu", 16, "bold"), text_color="#1E40AF").pack(padx=20, pady=(15, 5))
-        ctk.CTkLabel(header, text=f"Academic Year: {academic_year}",
+        ctk.CTkLabel(header, text=f"Niên khóa: {academic_year}",
                     font=self.FONT_NORMAL, text_color="#3B82F6").pack(padx=20, pady=(0, 15))
         
         # Loading
-        loading = ctk.CTkLabel(dialog, text="Loading classmates...", text_color="#94A3B8")
+        loading = ctk.CTkLabel(dialog, text="Đang tải danh sách...", text_color="#94A3B8")
         loading.pack(pady=20)
         
         # Get students
@@ -69,7 +69,7 @@ class StudentClassesView(ctk.CTkScrollableFrame):
         loading.destroy()
         
         if not students:
-            ctk.CTkLabel(dialog, text="No students in this class",
+            ctk.CTkLabel(dialog, text="Không có sinh viên trong lớp",
                         font=self.FONT_NORMAL, text_color="#94A3B8").pack(pady=30)
             return
         
@@ -77,7 +77,7 @@ class StudentClassesView(ctk.CTkScrollableFrame):
         count_frame = ctk.CTkFrame(dialog, fg_color="transparent")
         count_frame.pack(fill="x", padx=20, pady=(10, 5))
         
-        ctk.CTkLabel(count_frame, text=f"Total: {len(students)} students",
+        ctk.CTkLabel(count_frame, text=f"Tổng: {len(students)} sinh viên",
                     font=self.FONT_NORMAL, text_color="#64748B").pack(anchor="w")
         
         # Student list
@@ -114,7 +114,7 @@ class StudentClassesView(ctk.CTkScrollableFrame):
             
             name_text = student.get('full_name', 'N/A')
             if is_me:
-                name_text += " (You)"
+                name_text += " (Bạn)"
             
             ctk.CTkLabel(info, text=name_text,
                         font=("Ubuntu", 13, "bold"), 
@@ -129,7 +129,7 @@ class StudentClassesView(ctk.CTkScrollableFrame):
         
         # Create dialog
         dialog = ctk.CTkToplevel(self)
-        dialog.title("Class Students")
+        dialog.title("Sinh viên trong lớp")
         dialog.geometry("600x500")
         dialog.transient(self)
         dialog.configure(fg_color="white")
@@ -145,7 +145,7 @@ class StudentClassesView(ctk.CTkScrollableFrame):
                     font=("Ubuntu", 16, "bold"), text_color="#1E293B").pack(padx=20, pady=15)
         
         # Loading
-        loading = ctk.CTkLabel(dialog, text="Loading students...", text_color="#94A3B8")
+        loading = ctk.CTkLabel(dialog, text="Đang tải danh sách...", text_color="#94A3B8")
         loading.pack(pady=20)
         
         # Get students
@@ -153,7 +153,7 @@ class StudentClassesView(ctk.CTkScrollableFrame):
         loading.destroy()
         
         if not students:
-            ctk.CTkLabel(dialog, text="No students enrolled in this class",
+            ctk.CTkLabel(dialog, text="Chưa có sinh viên đăng ký lớp này",
                         font=self.FONT_NORMAL, text_color="#94A3B8").pack(pady=30)
             return
         
@@ -161,7 +161,7 @@ class StudentClassesView(ctk.CTkScrollableFrame):
         count_frame = ctk.CTkFrame(dialog, fg_color="transparent")
         count_frame.pack(fill="x", padx=20, pady=(10, 5))
         
-        ctk.CTkLabel(count_frame, text=f"Total: {len(students)} students",
+        ctk.CTkLabel(count_frame, text=f"Tổng: {len(students)} sinh viên",
                     font=self.FONT_NORMAL, text_color="#64748B").pack(anchor="w")
         
         # Student list
@@ -205,19 +205,19 @@ class StudentClassesView(ctk.CTkScrollableFrame):
             
             ctk.CTkLabel(info_section, text=cls['name'], font=("Ubuntu", 16, "bold"),
                         text_color="#1E40AF").pack(anchor="w")
-            ctk.CTkLabel(info_section, text=f"Academic Year: {cls.get('academic_year', 'N/A')}",
+            ctk.CTkLabel(info_section, text=f"Niên khóa: {cls.get('academic_year', 'N/A')}",
                         font=self.FONT_NORMAL, text_color="#3B82F6").pack(anchor="w")
             
             # Button section
             btn_section = ctk.CTkFrame(card, fg_color="transparent")
             btn_section.pack(fill="x", padx=20, pady=(0, 15))
             
-            ctk.CTkButton(btn_section, text="View Classmates", width=140, height=32,
+            ctk.CTkButton(btn_section, text="Xem bạn cùng lớp", width=140, height=32,
                          fg_color="#3B82F6", hover_color="#2563EB",
                          font=self.FONT_NORMAL,
                          command=lambda c=cls: self.view_admin_class_students(c)).pack(side="right")
         else:
-            ctk.CTkLabel(self.admin_content, text="Not assigned to any administrative class",
+            ctk.CTkLabel(self.admin_content, text="Chưa được phân vào lớp chính quy",
                         font=self.FONT_SMALL, text_color="#94A3B8").pack(pady=10)
         
         # Load course classes
@@ -227,7 +227,7 @@ class StudentClassesView(ctk.CTkScrollableFrame):
             w.destroy()
         
         if not course_classes:
-            ctk.CTkLabel(self.course_content, text="Not enrolled in any course classes",
+            ctk.CTkLabel(self.course_content, text="Chưa đăng ký lớp học phần nào",
                         font=self.FONT_SMALL, text_color="#94A3B8").pack(pady=20)
             return
         
@@ -249,9 +249,9 @@ class StudentClassesView(ctk.CTkScrollableFrame):
                         font=("Ubuntu", 14, "bold"), text_color="#334155").pack(anchor="w")
             
             # Class code and credits
-            details = f"Class: {cls.get('class_code', 'N/A')}"
+            details = f"Mã lớp: {cls.get('class_code', 'N/A')}"
             if cls.get('credits'):
-                details += f" • {cls.get('credits')} credits"
+                details += f" • {cls.get('credits')} tín chỉ"
             ctk.CTkLabel(info_frame, text=details,
                         font=self.FONT_SMALL, text_color="#64748B").pack(anchor="w")
             
@@ -259,7 +259,7 @@ class StudentClassesView(ctk.CTkScrollableFrame):
             btn_frame = ctk.CTkFrame(card, fg_color="transparent")
             btn_frame.pack(fill="x", padx=15, pady=(0, 10))
             
-            ctk.CTkButton(btn_frame, text="View Students", width=120, height=28,
+            ctk.CTkButton(btn_frame, text="Xem sinh viên", width=120, height=28,
                          fg_color="#3B82F6", hover_color="#2563EB",
                          font=self.FONT_SMALL,
                          command=lambda c=cls: self.view_students(c)).pack(side="right")

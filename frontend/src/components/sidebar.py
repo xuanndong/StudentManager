@@ -35,7 +35,7 @@ class Sidebar(ctk.CTkFrame):
                                 font=(self.FONT_MAIN, 28, "bold"), text_color=self.COLOR_ACCENT)
         logo_label.pack(anchor="w")
         
-        subtitle = ctk.CTkLabel(self.logo_frame, text="Student Management", 
+        subtitle = ctk.CTkLabel(self.logo_frame, text="Quản lý sinh viên", 
                               font=(self.FONT_MAIN, 12), text_color="#94A3B8")
         subtitle.pack(anchor="w", pady=(0, 0))
 
@@ -94,37 +94,37 @@ class Sidebar(ctk.CTkFrame):
         role = api.user_info.get("role", "STUDENT") if api.user_info else "STUDENT"
         
         # Danh sách menu chuẩn
-        menus = [("Dashboard", "dashboard", "dashboard.png")]
+        menus = [("Tổng quan", "dashboard", "dashboard.png")]
         
         if role == "ADMIN":
             menus.extend([
-                ("Users", "users", "group.png"),
-                ("Courses", "courses", "class.png"),
-                ("Admin Classes", "admin_classes", "layout.png"),
+                ("Người dùng", "users", "group.png"),
+                ("Môn học", "courses", "class.png"),
+                ("Lớp chính quy", "admin_classes", "layout.png"),
             ])
         elif role == "CVHT":
             menus.extend([
-                ("My Classes", "admin_classes", "class.png"),
-                ("Semester Summary", "semester_summary", "grade.png"),
-                ("Statistics", "stats", "calendar.png"),
-                ("Forum", "forum", "forum.png"),
+                ("Lớp chủ nhiệm", "admin_classes", "class.png"),
+                ("Tổng kết học kỳ", "semester_summary", "grade.png"),
+                ("Thống kê", "stats", "calendar.png"),
+                ("Diễn đàn", "forum", "forum.png"),
             ])
         elif role == "TEACHER":
             menus.extend([
-                ("My Courses", "course_classes", "class.png"),
-                ("Grade Entry", "course_grades", "grade.png"),
-                ("Forum", "forum", "forum.png"),
+                ("Lớp học phần", "course_classes", "class.png"),
+                ("Nhập điểm", "course_grades", "grade.png"),
+                ("Diễn đàn", "forum", "forum.png"),
             ])
         else: # STUDENT
             menus.extend([
-                ("My Classes", "student_classes", "class.png"),
-                ("My Grades", "student_grades", "grade.png"),
-                ("Forum", "forum", "forum.png"),
+                ("Lớp học của tôi", "student_classes", "class.png"),
+                ("Điểm của tôi", "student_grades", "grade.png"),
+                ("Diễn đàn", "forum", "forum.png"),
             ])
         
         # Messages - only for non-ADMIN
         if role != "ADMIN":
-            menus.append(("Messages", "chat", "chat.png"))
+            menus.append(("Tin nhắn", "chat", "chat.png"))
         
         # Tạo nút
         for text, key, icon in menus:
@@ -179,7 +179,7 @@ class Sidebar(ctk.CTkFrame):
         
         btn = ctk.CTkButton(
             self, 
-            text="Log out",
+            text="Đăng xuất",
             font=(self.FONT_MAIN, 14, "bold"),
             height=45,
             corner_radius=10,

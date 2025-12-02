@@ -18,10 +18,10 @@ class CoursesView(ctk.CTkScrollableFrame):
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.pack(fill="x", pady=(0, 20))
         
-        ctk.CTkLabel(header, text="Course Catalog", font=self.FONT_TITLE,
+        ctk.CTkLabel(header, text="Danh mục môn học", font=self.FONT_TITLE,
                     text_color="#1E293B").pack(side="left")
         
-        ctk.CTkButton(header, text="+ Add Course", font=self.FONT_NORMAL,
+        ctk.CTkButton(header, text="+ Thêm môn học", font=self.FONT_NORMAL,
                      height=36, fg_color="#0EA5E9", hover_color="#0284C7",
                      command=self.create_course_dialog).pack(side="right")
         
@@ -33,7 +33,7 @@ class CoursesView(ctk.CTkScrollableFrame):
         header_frame = ctk.CTkFrame(self.courses_container, fg_color="#F1F5F9", corner_radius=0)
         header_frame.pack(fill="x", padx=20, pady=20)
         
-        cols = [("Code", 0.2), ("Course Name", 0.5), ("Credits", 0.15), ("Actions", 0.15)]
+        cols = [("Mã môn", 0.2), ("Tên môn học", 0.5), ("Số tín chỉ", 0.15), ("Thao tác", 0.15)]
         for col, weight in cols:
             ctk.CTkLabel(header_frame, text=col, font=("Ubuntu", 13, "bold"),
                         text_color="#475569", anchor="w").pack(side="left", expand=True,
@@ -51,7 +51,7 @@ class CoursesView(ctk.CTkScrollableFrame):
         courses = api.get_all_courses()
         
         if not courses:
-            ctk.CTkLabel(self.content_frame, text="No courses available",
+            ctk.CTkLabel(self.content_frame, text="Chưa có môn học nào",
                         font=self.FONT_NORMAL, text_color="#94A3B8").pack(pady=40)
             return
         
@@ -75,7 +75,7 @@ class CoursesView(ctk.CTkScrollableFrame):
                                                            fill="x", padx=15, pady=15)
         
         # Credits
-        ctk.CTkLabel(row, text=f"{course['credits']} credits", font=self.FONT_SMALL,
+        ctk.CTkLabel(row, text=f"{course['credits']} tín chỉ", font=self.FONT_SMALL,
                     text_color="#64748B", anchor="w").pack(side="left", expand=True,
                                                            fill="x", padx=15, pady=15)
         
@@ -84,13 +84,13 @@ class CoursesView(ctk.CTkScrollableFrame):
         action_frame.pack(side="left", padx=15)
         
         # Edit button
-        ctk.CTkButton(action_frame, text="Edit", width=60, height=28,
+        ctk.CTkButton(action_frame, text="Sửa", width=60, height=28,
                      fg_color="#3B82F6", hover_color="#2563EB",
                      font=self.FONT_SMALL,
                      command=lambda c=course: self.edit_course(c)).pack(side="left", padx=3)
         
         # Delete button
-        ctk.CTkButton(action_frame, text="Delete", width=60, height=28,
+        ctk.CTkButton(action_frame, text="Xóa", width=60, height=28,
                      fg_color="#EF4444", hover_color="#DC2626",
                      font=self.FONT_SMALL,
                      command=lambda c=course: self.delete_course(c)).pack(side="left", padx=3)
@@ -98,28 +98,28 @@ class CoursesView(ctk.CTkScrollableFrame):
     def create_course_dialog(self):
         """Dialog tạo môn học mới"""
         dialog = ctk.CTkToplevel(self)
-        dialog.title("Add New Course")
+        dialog.title("Thêm môn học mới")
         dialog.geometry("450x350")
         dialog.transient(self)
         # Wait for dialog to be visible before grab_set
         dialog.update_idletasks()
         dialog.after(10, dialog.grab_set)
         
-        ctk.CTkLabel(dialog, text="Add New Course", font=self.FONT_TITLE).pack(pady=20)
+        ctk.CTkLabel(dialog, text="Thêm môn học mới", font=self.FONT_TITLE).pack(pady=20)
         
         # Course Code
-        ctk.CTkLabel(dialog, text="Course Code:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
-        code_entry = ctk.CTkEntry(dialog, placeholder_text="e.g., IT3080", font=self.FONT_NORMAL)
+        ctk.CTkLabel(dialog, text="Mã môn học:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
+        code_entry = ctk.CTkEntry(dialog, placeholder_text="VD: IT3080", font=self.FONT_NORMAL)
         code_entry.pack(fill="x", padx=30, pady=(5, 15))
         
         # Course Name
-        ctk.CTkLabel(dialog, text="Course Name:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
-        name_entry = ctk.CTkEntry(dialog, placeholder_text="e.g., Python Programming", font=self.FONT_NORMAL)
+        ctk.CTkLabel(dialog, text="Tên môn học:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
+        name_entry = ctk.CTkEntry(dialog, placeholder_text="VD: Lập trình Python", font=self.FONT_NORMAL)
         name_entry.pack(fill="x", padx=30, pady=(5, 15))
         
         # Credits
-        ctk.CTkLabel(dialog, text="Credits:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
-        credits_entry = ctk.CTkEntry(dialog, placeholder_text="e.g., 3", font=self.FONT_NORMAL)
+        ctk.CTkLabel(dialog, text="Số tín chỉ:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
+        credits_entry = ctk.CTkEntry(dialog, placeholder_text="VD: 3", font=self.FONT_NORMAL)
         credits_entry.pack(fill="x", padx=30, pady=(5, 20))
         
         def submit():
@@ -128,7 +128,7 @@ class CoursesView(ctk.CTkScrollableFrame):
             credits_str = credits_entry.get().strip()
             
             if not code or not name or not credits_str:
-                messagebox.showerror("Error", "Please fill all fields")
+                messagebox.showerror("Lỗi", "Vui lòng điền đầy đủ thông tin")
                 return
             
             try:
@@ -136,45 +136,45 @@ class CoursesView(ctk.CTkScrollableFrame):
                 if credits < 1 or credits > 6:
                     raise ValueError()
             except:
-                messagebox.showerror("Error", "Credits must be between 1 and 6")
+                messagebox.showerror("Lỗi", "Số tín chỉ phải từ 1 đến 6")
                 return
             
             success, _ = api.create_course(code, name, credits)
             if success:
-                messagebox.showinfo("Success", "Course created successfully")
+                messagebox.showinfo("Thành công", "Tạo môn học thành công")
                 dialog.destroy()
                 self.load_courses()
             else:
-                messagebox.showerror("Error", "Failed to create course (code may already exist)")
+                messagebox.showerror("Lỗi", "Tạo môn học thất bại (mã môn có thể đã tồn tại)")
         
-        ctk.CTkButton(dialog, text="Create Course", font=self.FONT_NORMAL, height=40,
+        ctk.CTkButton(dialog, text="Tạo môn học", font=self.FONT_NORMAL, height=40,
                      fg_color="#0EA5E9", command=submit).pack(fill="x", padx=30, pady=10)
 
     def edit_course(self, course):
         """Dialog chỉnh sửa môn học"""
         dialog = ctk.CTkToplevel(self)
-        dialog.title(f"Edit Course: {course['code']}")
+        dialog.title(f"Sửa môn học: {course['code']}")
         dialog.geometry("450x350")
         dialog.transient(self)
         dialog.update_idletasks()
         dialog.after(10, dialog.grab_set)
         
-        ctk.CTkLabel(dialog, text="Edit Course", font=self.FONT_TITLE).pack(pady=20)
+        ctk.CTkLabel(dialog, text="Sửa môn học", font=self.FONT_TITLE).pack(pady=20)
         
         # Course Code (readonly)
-        ctk.CTkLabel(dialog, text="Course Code:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
+        ctk.CTkLabel(dialog, text="Mã môn học:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
         code_display = ctk.CTkEntry(dialog, font=self.FONT_NORMAL, state="disabled")
         code_display.insert(0, course['code'])
         code_display.pack(fill="x", padx=30, pady=(5, 15))
         
         # Course Name
-        ctk.CTkLabel(dialog, text="Course Name:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
+        ctk.CTkLabel(dialog, text="Tên môn học:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
         name_entry = ctk.CTkEntry(dialog, font=self.FONT_NORMAL)
         name_entry.insert(0, course['name'])
         name_entry.pack(fill="x", padx=30, pady=(5, 15))
         
         # Credits
-        ctk.CTkLabel(dialog, text="Credits:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
+        ctk.CTkLabel(dialog, text="Số tín chỉ:", font=self.FONT_NORMAL).pack(anchor="w", padx=30)
         credits_entry = ctk.CTkEntry(dialog, font=self.FONT_NORMAL)
         credits_entry.insert(0, str(course['credits']))
         credits_entry.pack(fill="x", padx=30, pady=(5, 20))
@@ -184,7 +184,7 @@ class CoursesView(ctk.CTkScrollableFrame):
             credits_str = credits_entry.get().strip()
             
             if not name or not credits_str:
-                messagebox.showerror("Error", "Please fill all fields")
+                messagebox.showerror("Lỗi", "Vui lòng điền đầy đủ thông tin")
                 return
             
             try:
@@ -192,33 +192,33 @@ class CoursesView(ctk.CTkScrollableFrame):
                 if credits < 1 or credits > 6:
                     raise ValueError()
             except:
-                messagebox.showerror("Error", "Credits must be between 1 and 6")
+                messagebox.showerror("Lỗi", "Số tín chỉ phải từ 1 đến 6")
                 return
             
             course_id = course.get('_id', course.get('id'))
             success, _ = api.update_course(course_id, name, credits)
             if success:
-                messagebox.showinfo("Success", "Course updated successfully")
+                messagebox.showinfo("Thành công", "Cập nhật môn học thành công")
                 dialog.destroy()
                 self.load_courses()
             else:
-                messagebox.showerror("Error", "Failed to update course")
+                messagebox.showerror("Lỗi", "Cập nhật môn học thất bại")
         
-        ctk.CTkButton(dialog, text="Save Changes", font=self.FONT_NORMAL, height=40,
+        ctk.CTkButton(dialog, text="Lưu thay đổi", font=self.FONT_NORMAL, height=40,
                      fg_color="#0EA5E9", command=submit).pack(fill="x", padx=30, pady=10)
     
     def delete_course(self, course):
         """Xóa môn học"""
-        confirm_msg = f"Are you sure you want to delete this course?\n\n"
-        confirm_msg += f"Code: {course['code']}\n"
-        confirm_msg += f"Name: {course['name']}\n\n"
-        confirm_msg += "This will also delete all related course classes!"
+        confirm_msg = f"Bạn có chắc muốn xóa môn học này?\n\n"
+        confirm_msg += f"Mã môn: {course['code']}\n"
+        confirm_msg += f"Tên môn: {course['name']}\n\n"
+        confirm_msg += "Điều này cũng sẽ xóa tất cả lớp học phần liên quan!"
         
-        if messagebox.askyesno("Confirm Deletion", confirm_msg):
+        if messagebox.askyesno("Xác nhận xóa", confirm_msg):
             course_id = course.get('_id', course.get('id'))
             success, _ = api.delete_course(course_id)
             if success:
-                messagebox.showinfo("Success", "Course deleted successfully")
+                messagebox.showinfo("Thành công", "Xóa môn học thành công")
                 self.load_courses()
             else:
-                messagebox.showerror("Error", "Failed to delete course")
+                messagebox.showerror("Lỗi", "Xóa môn học thất bại")

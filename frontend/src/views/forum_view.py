@@ -73,8 +73,10 @@ class ForumView(ctk.CTkFrame):
                 # Administrative class
                 display_name = cls['name']
             else:
-                # Course class - hiển thị mã lớp
-                display_name = f"{cls.get('semester', 'N/A')} - {cls.get('class_code', cls.get('group', 'N/A'))}"
+                # Course class - hiển thị tên môn học và mã lớp
+                course_name = cls.get('course_name', 'Unknown Course')
+                class_code = cls.get('class_code', 'N/A')
+                display_name = f"{course_name} - {class_code}"
             
             btn = ctk.CTkButton(self.class_list, text=display_name, 
                                 fg_color="transparent", text_color="#334155",
@@ -92,7 +94,9 @@ class ForumView(ctk.CTkFrame):
         if 'name' in class_data:
             display_name = class_data['name']
         else:
-            display_name = f"{class_data.get('semester', 'N/A')} - {class_data.get('class_code', class_data.get('group', 'N/A'))}"
+            course_name = class_data.get('course_name', 'Unknown Course')
+            class_code = class_data.get('class_code', 'N/A')
+            display_name = f"{course_name} - {class_code}"
         
         self.lbl_current_class.configure(text=display_name)
         

@@ -59,20 +59,20 @@ class MainView(ctk.CTkFrame):
         
         # Map Title
         titles = {
-            "dashboard": "Overview",
-            "users": "User Management",
-            "courses": "Course Catalog",
-            "admin_classes": "Administrative Classes",
-            "course_classes": "Course Classes",
-            "course_grades": "Grade Entry",
-            "semester_summary": "Semester Summary",
-            "student_classes": "My Classes",
-            "student_grades": "My Academic Records",
-            "forum": "Discussion Forum",
-            "chat": "Messages",
-            "stats": "Statistics Report"
+            "dashboard": "Tổng quan",
+            "users": "Quản lý người dùng",
+            "courses": "Danh mục môn học",
+            "admin_classes": "Lớp chính quy",
+            "course_classes": "Lớp học phần",
+            "course_grades": "Nhập điểm",
+            "semester_summary": "Tổng kết học kỳ",
+            "student_classes": "Lớp học của tôi",
+            "student_grades": "Bảng điểm của tôi",
+            "forum": "Diễn đàn",
+            "chat": "Tin nhắn",
+            "stats": "Báo cáo thống kê"
         }
-        self.lbl_title.configure(text=titles.get(key, "Dashboard"))
+        self.lbl_title.configure(text=titles.get(key, "Tổng quan"))
 
         # Import views khi cần
         from src.views.admin_classes_view import AdminClassesView

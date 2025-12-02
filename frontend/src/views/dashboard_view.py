@@ -23,20 +23,20 @@ class DashboardView(ctk.CTkScrollableFrame):
         welcome = ctk.CTkFrame(self, fg_color="transparent")
         welcome.pack(fill="x", pady=(0, 30))
         
-        ctk.CTkLabel(welcome, text=f"Welcome back, {self.user_name}!",
+        ctk.CTkLabel(welcome, text=f"Chào mừng trở lại, {self.user_name}!",
                     font=self.FONT_TITLE, text_color="#1E293B").pack(anchor="w")
         
         role_text = {
-            "STUDENT": "View your academic progress and class information",
-            "TEACHER": "Manage your course classes and enter grades",
-            "CVHT": "Monitor your students' academic performance",
-            "ADMIN": "System administration and management"
+            "STUDENT": "Xem tiến độ học tập và thông tin lớp học",
+            "TEACHER": "Quản lý lớp học phần và nhập điểm",
+            "CVHT": "Theo dõi kết quả học tập của sinh viên",
+            "ADMIN": "Quản trị hệ thống"
         }
         ctk.CTkLabel(welcome, text=role_text.get(self.role, ""),
                     font=self.FONT_NORMAL, text_color="#64748B").pack(anchor="w", pady=(5, 0))
         
         # Loading
-        self.loading = ctk.CTkLabel(self, text="Loading your dashboard...",
+        self.loading = ctk.CTkLabel(self, text="Đang tải bảng điều khiển...",
                                     font=self.FONT_NORMAL, text_color="#94A3B8")
         self.loading.pack(pady=50)
         
@@ -86,11 +86,11 @@ class DashboardView(ctk.CTkScrollableFrame):
         avg_gpa = sum(s.get('gpa', 0) for s in summaries) / len(summaries) if summaries else 0
         has_warning = any(s.get('academic_warning', 0) > 0 for s in summaries)
         
-        self.create_stat_card(stats_row, 0, "Overall GPA", f"{avg_gpa:.2f}",
+        self.create_stat_card(stats_row, 0, "Điểm TB tích lũy", f"{avg_gpa:.2f}",
                              "#10B981" if avg_gpa >= 3.2 else "#F59E0B" if avg_gpa >= 2.5 else "#EF4444")
-        self.create_stat_card(stats_row, 1, "Total Credits", str(total_credits), "#3B82F6")
-        self.create_stat_card(stats_row, 2, "Academic Status",
-                             "Warning" if has_warning else "Good Standing",
+        self.create_stat_card(stats_row, 1, "Tổng số tín chỉ", str(total_credits), "#3B82F6")
+        self.create_stat_card(stats_row, 2, "Tình trạng học tập",
+                             "Cảnh báo" if has_warning else "Tốt",
                              "#EF4444" if has_warning else "#10B981")
         
         # Row 2: Administrative Class
@@ -99,7 +99,7 @@ class DashboardView(ctk.CTkScrollableFrame):
             class_frame = ctk.CTkFrame(self.content, fg_color="white", corner_radius=12)
             class_frame.pack(fill="x", pady=(0, 20))
             
-            ctk.CTkLabel(class_frame, text="My Administrative Class",
+            ctk.CTkLabel(class_frame, text="Lớp chính quy",
                         font=("Ubuntu", 16, "bold"), text_color="#334155").pack(padx=20, pady=(20, 10), anchor="w")
             
             info = ctk.CTkFrame(class_frame, fg_color="#F8FAFC", corner_radius=8)
@@ -107,18 +107,18 @@ class DashboardView(ctk.CTkScrollableFrame):
             
             ctk.CTkLabel(info, text=cls['name'], font=("Ubuntu", 18, "bold"),
                         text_color="#0EA5E9").pack(padx=15, pady=(15, 5), anchor="w")
-            ctk.CTkLabel(info, text=f"Academic Year: {cls.get('academic_year', 'N/A')}",
+            ctk.CTkLabel(info, text=f"Niên khóa: {cls.get('academic_year', 'N/A')}",
                         font=self.FONT_NORMAL, text_color="#64748B").pack(padx=15, pady=(0, 15), anchor="w")
         
         # Row 3: Enrolled Courses
         courses_frame = ctk.CTkFrame(self.content, fg_color="white", corner_radius=12)
         courses_frame.pack(fill="both", expand=True)
         
-        ctk.CTkLabel(courses_frame, text=f"Enrolled Courses ({len(course_classes)})",
+        ctk.CTkLabel(courses_frame, text=f"Lớp học phần đã đăng ký ({len(course_classes)})",
                     font=("Ubuntu", 16, "bold"), text_color="#334155").pack(padx=20, pady=(20, 10), anchor="w")
         
         if not course_classes:
-            ctk.CTkLabel(courses_frame, text="You are not enrolled in any courses yet",
+            ctk.CTkLabel(courses_frame, text="Bạn chưa đăng ký lớp học phần nào",
                         font=self.FONT_NORMAL, text_color="#94A3B8").pack(pady=30)
         else:
             for cls in course_classes[:5]:  # Show max 5
@@ -154,21 +154,21 @@ class DashboardView(ctk.CTkScrollableFrame):
         
         total_students = sum(len(c.get('student_ids', [])) for c in course_classes)
         
-        self.create_stat_card(stats_row, 0, "My Course Classes", str(len(course_classes)), "#3B82F6")
-        self.create_stat_card(stats_row, 1, "Total Students", str(total_students), "#10B981")
-        self.create_stat_card(stats_row, 2, "Active Semester", "2024-1", "#8B5CF6")
+        self.create_stat_card(stats_row, 0, "Lớp học phần của tôi", str(len(course_classes)), "#3B82F6")
+        self.create_stat_card(stats_row, 1, "Tổng số sinh viên", str(total_students), "#10B981")
+        self.create_stat_card(stats_row, 2, "Học kỳ hiện tại", "2024-1", "#8B5CF6")
         
         # Course list
         courses_frame = ctk.CTkFrame(self.content, fg_color="white", corner_radius=12)
         courses_frame.pack(fill="both", expand=True)
         
-        ctk.CTkLabel(courses_frame, text="My Course Classes",
+        ctk.CTkLabel(courses_frame, text="Lớp học phần của tôi",
                     font=("Ubuntu", 16, "bold"), text_color="#334155").pack(padx=20, pady=(20, 10), anchor="w")
         
         if not course_classes:
-            ctk.CTkLabel(courses_frame, text="You haven't created any course classes yet",
+            ctk.CTkLabel(courses_frame, text="Bạn chưa tạo lớp học phần nào",
                         font=self.FONT_NORMAL, text_color="#94A3B8").pack(pady=30)
-            ctk.CTkLabel(courses_frame, text="Go to 'My Courses' to create your first class",
+            ctk.CTkLabel(courses_frame, text="Vào 'Lớp học phần' để tạo lớp đầu tiên",
                         font=self.FONT_SMALL, text_color="#CBD5E1").pack()
         else:
             for cls in course_classes:
@@ -185,7 +185,7 @@ class DashboardView(ctk.CTkScrollableFrame):
                 
                 ctk.CTkLabel(left, text=display_text,
                             font=("Ubuntu", 14, "bold"), text_color="#334155").pack(anchor="w")
-                ctk.CTkLabel(left, text=f"{len(cls.get('student_ids', []))} students enrolled",
+                ctk.CTkLabel(left, text=f"{len(cls.get('student_ids', []))} sinh viên",
                             font=self.FONT_SMALL, text_color="#64748B").pack(anchor="w")
 
     def load_cvht_dashboard(self):
@@ -209,19 +209,19 @@ class DashboardView(ctk.CTkScrollableFrame):
         
         total_students = sum(len(c.get('student_ids', [])) for c in admin_classes)
         
-        self.create_stat_card(stats_row, 0, "My Classes", str(len(admin_classes)), "#3B82F6")
-        self.create_stat_card(stats_row, 1, "Total Students", str(total_students), "#10B981")
-        self.create_stat_card(stats_row, 2, "Role", "Class Advisor", "#8B5CF6")
+        self.create_stat_card(stats_row, 0, "Lớp chủ nhiệm", str(len(admin_classes)), "#3B82F6")
+        self.create_stat_card(stats_row, 1, "Tổng số sinh viên", str(total_students), "#10B981")
+        self.create_stat_card(stats_row, 2, "Vai trò", "Cố vấn học tập", "#8B5CF6")
         
         # Class list
         classes_frame = ctk.CTkFrame(self.content, fg_color="white", corner_radius=12)
         classes_frame.pack(fill="both", expand=True)
         
-        ctk.CTkLabel(classes_frame, text="My Administrative Classes",
+        ctk.CTkLabel(classes_frame, text="Lớp chủ nhiệm",
                     font=("Ubuntu", 16, "bold"), text_color="#334155").pack(padx=20, pady=(20, 10), anchor="w")
         
         if not admin_classes:
-            ctk.CTkLabel(classes_frame, text="You haven't been assigned any classes yet",
+            ctk.CTkLabel(classes_frame, text="Bạn chưa được phân công lớp nào",
                         font=self.FONT_NORMAL, text_color="#94A3B8").pack(pady=30)
         else:
             for cls in admin_classes:
@@ -233,7 +233,7 @@ class DashboardView(ctk.CTkScrollableFrame):
                 
                 ctk.CTkLabel(left, text=cls['name'],
                             font=("Ubuntu", 14, "bold"), text_color="#334155").pack(anchor="w")
-                ctk.CTkLabel(left, text=f"{cls.get('academic_year', 'N/A')} • {len(cls.get('student_ids', []))} students",
+                ctk.CTkLabel(left, text=f"{cls.get('academic_year', 'N/A')} • {len(cls.get('student_ids', []))} sinh viên",
                             font=self.FONT_SMALL, text_color="#64748B").pack(anchor="w")
 
     def load_admin_dashboard(self):
@@ -256,15 +256,15 @@ class DashboardView(ctk.CTkScrollableFrame):
         stats_row.pack(fill="x", pady=(0, 20))
         stats_row.grid_columnconfigure((0, 1, 2), weight=1)
         
-        self.create_stat_card(stats_row, 0, "Total Users", str(len(users)), "#3B82F6")
-        self.create_stat_card(stats_row, 1, "Total Courses", str(len(courses)), "#10B981")
-        self.create_stat_card(stats_row, 2, "System", "Active", "#10B981")
+        self.create_stat_card(stats_row, 0, "Tổng số người dùng", str(len(users)), "#3B82F6")
+        self.create_stat_card(stats_row, 1, "Tổng số môn học", str(len(courses)), "#10B981")
+        self.create_stat_card(stats_row, 2, "Hệ thống", "Hoạt động", "#10B981")
         
         # Quick info
         info_frame = ctk.CTkFrame(self.content, fg_color="white", corner_radius=12)
         info_frame.pack(fill="both", expand=True)
         
-        ctk.CTkLabel(info_frame, text="System Overview",
+        ctk.CTkLabel(info_frame, text="Tổng quan hệ thống",
                     font=("Ubuntu", 16, "bold"), text_color="#334155").pack(padx=20, pady=(20, 10), anchor="w")
         
         # Count by role
@@ -277,7 +277,7 @@ class DashboardView(ctk.CTkScrollableFrame):
             item = ctk.CTkFrame(info_frame, fg_color="#F8FAFC", corner_radius=8)
             item.pack(fill="x", padx=20, pady=5)
             
-            ctk.CTkLabel(item, text=f"{role}: {count} users",
+            ctk.CTkLabel(item, text=f"{role}: {count} người dùng",
                         font=self.FONT_NORMAL, text_color="#334155").pack(padx=15, pady=10, anchor="w")
 
     def create_stat_card(self, parent, col, title, value, color):
@@ -312,7 +312,7 @@ class DashboardView(ctk.CTkScrollableFrame):
         # Floating button at bottom right
         ai_btn = ctk.CTkButton(
             self.master,
-            text="AI Assistant",
+            text="Trợ lý AI",
             font=(self.FONT_NORMAL[0], 13, "bold"),
             fg_color="#6366F1",
             hover_color="#5558E3",
@@ -333,8 +333,8 @@ class DashboardView(ctk.CTkScrollableFrame):
         if not health.get('available'):
             from tkinter import messagebox
             messagebox.showwarning(
-                "AI Not Available",
-                "AI Assistant is not configured.\n\nPlease contact administrator to enable this feature."
+                "AI không khả dụng",
+                "Trợ lý AI chưa được cấu hình.\n\nVui lòng liên hệ quản trị viên để kích hoạt tính năng này."
             )
             return
         

@@ -131,11 +131,8 @@ class APIClient:
         return students
     
     def import_students(self, class_id, file_path):
-        """DEPRECATED: Tương thích ngược"""
-        success, result = self.import_administrative_students(class_id, file_path)
-        if not success:
-            success, result = self.import_course_students(class_id, file_path)
-        return (success, result)
+        """DEPRECATED: Chỉ import vào lớp chính quy"""
+        return self.import_administrative_students(class_id, file_path)
     
     def remove_student(self, class_id, student_id):
         """DEPRECATED: Tương thích ngược"""
@@ -193,36 +190,6 @@ class APIClient:
         res = self.request("GET", f"/administrative-classes/{class_id}/students")
         return res.json() if res and res.status_code == 200 else []
 
-    def import_administrative_students(self, class_id, file_path):
-        """Import sinh viên vào lớp chính quy"""
-        try:
-            # Read file content first
-            with open(file_path, 'rb') as f:
-                file_content = f.read()
-            
-            # Determine content type
-            if file_path.endswith('.csv'):
-                content_type = 'text/csv'
-            else:
-                content_type = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
-            
-            # Send file
-            files = {'file': (os.path.basename(file_path), file_content, content_type)}
-            url = f"{self.base_url}/administrative-classes/{class_id}/import-students"
-            headers = {"Authorization": f"Bearer {self.token}"}
-            res = self.session.post(url, files=files, headers=headers)
-            
-            if res.status_code == 200:
-                return (True, res.json())
-            else:
-                try:
-                    error_detail = res.json()
-                except:
-                    error_detail = res.text
-                return (False, error_detail)
-        except Exception as e:
-            return (False, str(e))
-
     def remove_administrative_student(self, class_id, student_id):
         """Xóa sinh viên khỏi lớp chính quy"""
         res = self.request("DELETE", f"/administrative-classes/{class_id}/students/{student_id}")
@@ -256,12 +223,12 @@ class APIClient:
         res = self.request("GET", url)
         return res.json() if res and res.status_code == 200 else []
 
-    def create_course_class(self, course_id, semester, group):
+    def create_course_class(self, course_id, semester, class_code):
         """Tạo lớp học phần (TEACHER)"""
         res = self.request("POST", "/course-classes", json={
             "course_id": course_id,
             "semester": semester,
-            "group": group
+            "class_code": class_code
         })
         return (True, res.json()) if res and res.status_code == 200 else (False, "Error")
 
@@ -270,27 +237,22 @@ class APIClient:
         res = self.request("GET", f"/course-classes/{class_id}/students")
         return res.json() if res and res.status_code == 200 else []
 
-    def import_course_students(self, class_id, file_path):
-        """Import sinh viên vào lớp học phần"""
-        try:
-            with open(file_path, 'rb') as f:
-                files = {'file': (os.path.basename(file_path), f)}
-                url = f"{self.base_url}/course-classes/{class_id}/import-students"
-                res = self.session.post(url, files=files, headers={"Authorization": f"Bearer {self.token}"})
-                return (True, res.json()) if res.status_code == 200 else (False, res.json())
-        except Exception as e: return (False, str(e))
+
 
     # --- COURSE GRADES (TEACHER) ---
-    def import_course_grades(self, course_class_id, file_path):
-        """Import điểm môn học"""
+    
+    def save_course_grades(self, course_class_id, grades_data):
+        """Lưu điểm cho lớp học phần"""
         try:
-            with open(file_path, 'rb') as f:
-                files = {'file': (os.path.basename(file_path), f)}
-                url = f"{self.base_url}/course-grades/import"
-                params = {'course_class_id': course_class_id}
-                res = self.session.post(url, params=params, files=files, headers={"Authorization": f"Bearer {self.token}"})
-                return (True, res.json()) if res.status_code == 200 else (False, res.json())
-        except Exception as e: return (False, str(e))
+            url = f"{self.base_url}/course-grades/save"
+            data = {
+                'course_class_id': course_class_id,
+                'grades': grades_data
+            }
+            res = self.session.post(url, json=data, headers={"Authorization": f"Bearer {self.token}"})
+            return (True, res.json()) if res.status_code == 200 else (False, res.json())
+        except Exception as e: 
+            return (False, str(e))
 
     def get_my_course_grades(self, semester=None):
         """Sinh viên xem điểm các môn"""
