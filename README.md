@@ -1,6 +1,6 @@
 # Student Management System (QLSV)
 
-## 📋 Tổng quan
+## Tổng quan
 
 **Đây là một ứng dụng quản lý sinh viên hoàn chỉnh** với đầy đủ các tính năng:
 
@@ -49,15 +49,26 @@ Hệ thống quản lý sinh viên với phân quyền đầy đủ cho ADMIN, C
 
 ### Quản lý lớp học
 
-**Lớp chính quy (Administrative Class)**
-- Quản lý bởi CVHT
-- Nhóm sinh viên theo khóa học (ví dụ: CNTT-K17)
-- Theo dõi học lực toàn khóa
+Hệ thống có 2 loại lớp học rõ ràng:
 
-**Lớp học phần (Course Class)**
-- Quản lý bởi Teacher
-- Dạy môn học cụ thể trong học kỳ
-- Nhập điểm cho sinh viên đăng ký
+**1. Lớp chính quy (Administrative Class)**
+- **Quản lý bởi**: CVHT (Cố vấn học tập)
+- **Mục đích**: Nhóm sinh viên theo khóa học, tồn tại suốt 4 năm
+- **Ví dụ**: CNTT-K17, QTM-K18
+- **Chức năng**:
+  - Theo dõi học lực toàn khóa
+  - Quản lý thông tin sinh viên
+  - Tính GPA và tổng kết học kỳ
+  - Cảnh báo học vụ
+
+**2. Lớp học phần (Course Class)**
+- **Quản lý bởi**: Teacher (Giảng viên)
+- **Mục đích**: Dạy môn học cụ thể trong 1 học kỳ
+- **Ví dụ**: IT3080.01, IT3090.02
+- **Chức năng**:
+  - Quản lý sinh viên đăng ký môn học
+  - Nhập điểm (giữa kỳ, cuối kỳ, bài tập)
+  - Tính điểm tổng kết theo công thức
 
 ### Quản lý điểm
 
@@ -177,22 +188,22 @@ app/
 │   └── connection.py           # Kết nối MongoDB
 ├── model/                      # Pydantic models
 │   ├── muser.py               # User model
-│   ├── mcourse.py             # Course model
-│   ├── madministrative_class.py
+│   ├── mcourse.py             # Course & Course Class models
+│   ├── madministrative_class.py  # Administrative Class model
 │   ├── mgrade.py              # Grade models
 │   ├── mpost.py               # Forum post model
 │   └── mchat.py               # Chat models
 ├── routers/                    # API endpoints
 │   ├── auth.py                # Login, register
 │   ├── users.py               # User management
-│   ├── courses.py             # Course catalog
-│   ├── administrative_classes.py
-│   ├── classes.py             # Course classes
+│   ├── courses.py             # Courses & Course Classes
+│   ├── administrative_classes.py  # Administrative Classes
 │   ├── course_grades.py       # Grade entry
 │   ├── semester_summary.py    # GPA calculation
 │   ├── posts.py               # Forum
 │   ├── chat.py                # Chat & WebSocket
-│   └── stats.py               # Statistics
+│   ├── stats.py               # Statistics
+│   └── ai_assistant.py        # AI Chatbot
 └── utils/
     └── grade_calculator.py     # GPA calculation logic
 ```
@@ -263,35 +274,37 @@ frontend/
 
 **users**
 - Lưu thông tin người dùng
-- Fields: mssv, full_name, email, password, role, phone
+- Fields: `mssv`, `full_name`, `email`, `password`, `role`, `phone`, `administrative_class_id`
 
 **courses**
 - Danh mục môn học
-- Fields: course_code, course_name, credits, grade_formula
+- Fields: `code`, `name`, `credits`, `grade_formula`
 
-**administrative_classes**
-- Lớp chính quy
-- Fields: name, academic_year, advisor_id, student_ids
+**administrative_classes** (Lớp chính quy)
+- Quản lý bởi CVHT, tồn tại suốt khóa học
+- Fields: `name`, `academic_year`, `advisor_id`, `student_ids`
+- Ví dụ: CNTT-K17, QTM-K18
 
-**course_classes**
-- Lớp học phần
-- Fields: course_id, teacher_id, semester, class_code, student_ids
+**course_classes** (Lớp học phần)
+- Quản lý bởi Teacher, tồn tại trong 1 học kỳ
+- Fields: `course_id`, `teacher_id`, `semester`, `class_code`, `student_ids`
+- Ví dụ: IT3080.01, IT3090.02
 
 **course_grades**
-- Điểm từng môn
-- Fields: student_id, course_class_id, midterm, final, assignment, total
+- Điểm từng môn học
+- Fields: `student_id`, `course_class_id`, `midterm_score`, `final_score`, `assignment_score`, `total_score`
 
 **semester_summaries**
-- Tổng kết học kỳ
-- Fields: student_id, semester, gpa, credits_earned, academic_warning
+- Tổng kết học kỳ (tự động tính từ điểm các môn)
+- Fields: `student_id`, `semester`, `gpa`, `credits_earned`, `credits_passed`, `tuition_debt`, `academic_warning`
 
 **posts**
-- Bài viết forum
-- Fields: class_id, author_id, content, comments
+- Bài viết forum (cho cả lớp chính quy và lớp học phần)
+- Fields: `post_type`, `class_id`, `author_id`, `content`, `likes`, `comments`
 
 **conversations & messages**
 - Chat real-time
-- Fields: participants, messages, timestamps
+- Fields: `participants`, `messages`, `timestamps`
 
 ## API Documentation
 
@@ -301,16 +314,41 @@ Sau khi chạy backend, truy cập Swagger UI để xem tài liệu API đầy �
 http://localhost:8080/docs
 ```
 
-API endpoints chính:
+### API Endpoints chính
 
-- POST /api/v1/auth/login - Đăng nhập
-- GET /api/v1/users/ - Danh sách users
-- GET /api/v1/courses/ - Danh sách môn học
-- GET /api/v1/administrative-classes/ - Lớp chính quy
-- GET /api/v1/course-classes/ - Lớp học phần
-- POST /api/v1/course-grades/ - Nhập điểm
-- GET /api/v1/semester-summary/ - Tổng kết học kỳ
-- WebSocket /ws/{user_id} - Chat real-time
+**Authentication:**
+- `POST /api/v1/auth/login` - Đăng nhập
+- `POST /api/v1/auth/register` - Đăng ký
+- `POST /api/v1/auth/refresh` - Refresh token
+
+**Users:**
+- `GET /api/v1/users/` - Danh sách users (Admin)
+- `GET /api/v1/users/me` - Thông tin user hiện tại
+
+**Courses (Môn học):**
+- `GET /api/v1/courses/` - Danh sách môn học
+- `POST /api/v1/courses/` - Tạo môn học (Admin)
+
+**Administrative Classes (Lớp chính quy - CVHT):**
+- `GET /api/v1/administrative-classes/` - Danh sách lớp chính quy
+- `POST /api/v1/administrative-classes/` - Tạo lớp chính quy (CVHT)
+- `POST /api/v1/administrative-classes/{id}/import-students` - Import sinh viên
+
+**Course Classes (Lớp học phần - Teacher):**
+- `GET /api/v1/course-classes/` - Danh sách lớp học phần
+- `POST /api/v1/course-classes/` - Tạo lớp học phần (Teacher)
+- `POST /api/v1/course-classes/{id}/import-students` - Import sinh viên
+
+**Grades:**
+- `POST /api/v1/course-grades/import` - Import điểm (Teacher)
+- `GET /api/v1/course-grades/my-grades` - Xem điểm của mình (Student)
+
+**Semester Summary:**
+- `POST /api/v1/semester-summary/calculate/{student_id}` - Tính GPA (CVHT)
+- `GET /api/v1/semester-summary/my-summary` - Xem tổng kết (Student)
+
+**Real-time:**
+- `WebSocket /ws/{user_id}` - Chat real-time
 
 ## Bảo mật
 

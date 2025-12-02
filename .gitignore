@@ -4,3 +4,6 @@ __pycache__
 data.json
 import_sample_data.py
 sample_import_students.csv
+.kiro
+*.md
+*.csv

@@ -15,16 +15,13 @@ from app.routers.chat import router as chat
 from app.routers.stats import router as stats
 from app.routers.ai_assistant import router as ai_assistant
 
-# Deprecated routers (kept for backward compatibility)
-from app.routers.classes import router as classes_deprecated
-
 load_dotenv()
 
 app = FastAPI(
     lifespan=lifespan,
     title=os.getenv("PROJECT_NAME", "QLSV - Student Management System"),
-    version="2.0.0",
-    description="Refactored with proper separation: Administrative Classes (CVHT) and Course Classes (Teacher)",
+    version="2.1.0",
+    description="Clean architecture with Administrative Classes (CVHT) and Course Classes (Teacher)",
     redoc_url=None
 )
 
@@ -36,7 +33,6 @@ app.add_middleware(
     allow_headers=["*"]
 )
 
-# New routers
 app.include_router(auth)
 app.include_router(user)
 app.include_router(administrative_classes)
@@ -47,9 +43,6 @@ app.include_router(posts)
 app.include_router(chat)
 app.include_router(stats)
 app.include_router(ai_assistant)
-
-# Deprecated routers (for backward compatibility)
-app.include_router(classes_deprecated)
 
 
 @app.exception_handler(Exception)
@@ -65,10 +58,24 @@ async def generate_exception_handler(request: Request, exc: Exception):
 @app.get("/")
 async def root():
     return {
-        "message": "Student Management System API v2.0",
+        "message": "Student Management System API v2.1",
         "docs": "/docs",
-        "note": "Refactored with proper business logic separation"
+        "note": "Clean architecture with Administrative Classes and Course Classes"
     }
+
+
+@app.get("/api/v1/classes")
+async def deprecated_classes_endpoint():
+    """Endpoint deprecated - đã được thay thế bởi /api/v1/administrative-classes"""
+    raise HTTPException(
+        status_code=status.HTTP_410_GONE,
+        detail={
+            "error": "This endpoint has been removed",
+            "message": "The /api/v1/classes endpoint is deprecated and no longer available.",
+            "replacement": "Use /api/v1/administrative-classes for managing administrative classes (lớp chính quy)",
+            "alternative": "Use /api/v1/course-classes for managing course classes (lớp học phần)"
+        }
+    )
 
 
 if __name__ == "__main__":

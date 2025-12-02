@@ -43,9 +43,9 @@ class ConversationResponse(BaseModel):
     participants: list[str] # Danh sách user_id tham gia
     last_message: LastMessage | None = None
     updated_at: datetime
-    # Populated fields (optional)
-    other_user_name: str | None = None  # Tên người chat (populated)
-    other_user_phone: str | None = None  # Phone người chat (populated)
+
+    other_user_name: str | None = None  # Tên người chat
+    other_user_phone: str | None = None  # Phone người chat
 
     model_config = {
         "populate_by_name": True,

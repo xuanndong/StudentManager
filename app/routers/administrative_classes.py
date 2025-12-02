@@ -1,9 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status, UploadFile, File, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from pymongo.asynchronous.database import AsyncDatabase
 from datetime import datetime
 from bson import ObjectId
-import pandas as pd
-import io
 import os
 from dotenv import load_dotenv
 
@@ -66,89 +64,6 @@ async def get_my_administrative_classes(
         c["_id"] = str(c["_id"])
     
     return classes
-
-
-@router.post("/{class_id}/import-students")
-async def import_students(
-    class_id: str,
-    request: Request,
-    file: UploadFile = File(...),
-    current_user: dict = Depends(get_current_cvht)
-):
-    """CVHT import danh sách sinh viên vào lớp chính quy"""
-    db: AsyncDatabase = request.app.state.db
-
-    if not ObjectId.is_valid(class_id):
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid class ID")
-    
-    # Admin can access all classes, CVHT only their own
-    if current_user.get('role') == "ADMIN":
-        class_obj = await db.administrative_classes.find_one({"_id": ObjectId(class_id)})
-    else:
-        class_obj = await db.administrative_classes.find_one({
-            "_id": ObjectId(class_id),
-            "advisor_id": str(current_user["_id"])
-        })
-    
-    if not class_obj:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Class not found or access denied")
-    
-    contents = await file.read()
-    try:
-        if file.filename.endswith('.csv'):
-            df = pd.read_csv(io.BytesIO(contents))
-        elif file.filename.endswith(('.xls', '.xlsx')):
-            df = pd.read_excel(io.BytesIO(contents))
-        else:
-            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only .csv or .xlsx files are supported")
-    except Exception as e:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Could not parse file: {str(e)}")
-    
-    df.columns = [c.lower().strip() for c in df.columns]
-
-    target_column = None
-    if 'email' in df.columns:
-        target_column = 'email'
-    elif 'mssv' in df.columns:
-        target_column = 'mssv'
-    else:
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="File must contain 'email' or 'mssv' column")
-    
-    imported_users = []
-    errors = []
-
-    for index, row in df.iterrows():
-        val = str(row[target_column]).strip()
-
-        user = None
-        if target_column == 'email':
-            user = await db.users.find_one({'email': val, 'role': 'STUDENT'})
-        else:
-            user = await db.users.find_one({'mssv': val, 'role': 'STUDENT'})
-
-        if user:
-            user_id = str(user['_id'])
-            if user_id not in imported_users:
-                imported_users.append(user_id)
-                # Cập nhật administrative_class_id cho sinh viên
-                await db.users.update_one(
-                    {"_id": user['_id']},
-                    {"$set": {"administrative_class_id": class_id}}
-                )
-        else:
-            errors.append(f"Row {index+2}: Student {val} not found")
-
-    if imported_users:
-        await db.administrative_classes.update_one(
-            {"_id": ObjectId(class_id)},
-            {"$addToSet": {"student_ids": {"$each": imported_users}}}
-        )
-
-    return {
-        "message": "Import completed",
-        "added_count": len(imported_users),
-        "errors": errors
-    }
 
 
 @router.get('/{class_id}/students', response_model=list[UserResponse])

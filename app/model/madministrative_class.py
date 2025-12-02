@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field
 from datetime import datetime
 
 class AdministrativeClassCreate(BaseModel):
-    name: str = Field(..., examples=["CNTT-K17"])
+    name: str = Field(..., examples=["CNTT"])
     academic_year: str = Field(..., examples=["2020-2024"])  # Khóa học
 
 
@@ -19,7 +19,7 @@ class AdministrativeClassResponse(AdministrativeClassCreate):
             "examples": [
                 {
                     "id": "",
-                    "name": "CNTT-K17",
+                    "name": "CNTT",
                     "academic_year": "2020-2024",
                     "advisor_id": "",
                     "student_ids": [],

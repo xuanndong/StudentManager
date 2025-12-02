@@ -32,9 +32,9 @@
     },
     {
       "_id": {"$oid": "6740a1b2c3d4e5f6a7b8c9d3"},
-      "mssv": "20201234",
+      "mssv": "20221234",
       "email": "student1@university.edu",
-      "full_name": "Le Van Bach",
+      "full_name": "Pham Thi Dung",
       "phone": "0912345678",
       "password": "password123",
       "role": "STUDENT",
@@ -43,9 +43,9 @@
     },
     {
       "_id": {"$oid": "6740a1b2c3d4e5f6a7b8c9d4"},
-      "mssv": "20201235",
+      "mssv": "20221235",
       "email": "student2@university.edu",
-      "full_name": "Pham Thi Hoai Trang",
+      "full_name": "Hoang Van Em",
       "phone": "0923456789",
       "password": "password123",
       "role": "STUDENT",
@@ -54,9 +54,9 @@
     },
     {
       "_id": {"$oid": "6740a1b2c3d4e5f6a7b8c9d5"},
-      "mssv": "20201236",
+      "mssv": "20221236",
       "email": "student3@university.edu",
-      "full_name": "Hoang Van Bach",
+      "full_name": "Nguyen Thi Phuong",
       "phone": "0934567890",
       "password": "password123",
       "role": "STUDENT",
@@ -70,6 +70,11 @@
       "code": "IT3080",
       "name": "Lập trình Python",
       "credits": 3,
+      "grade_formula": {
+        "regular_weight_1": 0.2,
+        "regular_weight_2": 0.3,
+        "final_weight": 0.5
+      },
       "created_at": {"$date": "2024-01-15T00:00:00Z"}
     },
     {
@@ -77,6 +82,11 @@
       "code": "IT3090",
       "name": "Cơ sở dữ liệu",
       "credits": 3,
+      "grade_formula": {
+        "regular_weight_1": 0.2,
+        "regular_weight_2": 0.3,
+        "final_weight": 0.5
+      },
       "created_at": {"$date": "2024-01-15T00:00:00Z"}
     },
     {
@@ -84,6 +94,11 @@
       "code": "IT3100",
       "name": "Mạng máy tính",
       "credits": 3,
+      "grade_formula": {
+        "regular_weight_1": 0.2,
+        "regular_weight_2": 0.3,
+        "final_weight": 0.5
+      },
       "created_at": {"$date": "2024-01-15T00:00:00Z"}
     },
     {
@@ -91,6 +106,11 @@
       "code": "IT4010",
       "name": "Trí tuệ nhân tạo",
       "credits": 3,
+      "grade_formula": {
+        "regular_weight_1": 0.2,
+        "regular_weight_2": 0.3,
+        "final_weight": 0.5
+      },
       "created_at": {"$date": "2024-08-15T00:00:00Z"}
     },
     {
@@ -98,14 +118,19 @@
       "code": "IT4020",
       "name": "Học máy",
       "credits": 3,
+      "grade_formula": {
+        "regular_weight_1": 0.2,
+        "regular_weight_2": 0.3,
+        "final_weight": 0.5
+      },
       "created_at": {"$date": "2024-08-15T00:00:00Z"}
     }
   ],
   "administrative_classes": [
     {
       "_id": {"$oid": "6740a1b2c3d4e5f6a7b8c9e0"},
-      "name": "CNTT-K17",
-      "academic_year": "2020-2024",
+      "name": "CNTT",
+      "academic_year": "2022-2026",
       "advisor_id": "6740a1b2c3d4e5f6a7b8c9d1",
       "student_ids": [
         "6740a1b2c3d4e5f6a7b8c9d3",
@@ -144,7 +169,7 @@
     {
       "_id": {"$oid": "6740a1b2c3d4e5f6a7b8ca02"},
       "course_id": "6740a1b2c3d4e5f6a7b8c9f2",
-      "semester": "2025-1",
+      "semester": "2024-2",
       "class_code": "IT3100.01",
       "teacher_id": "6740a1b2c3d4e5f6a7b8c9d2",
       "student_ids": [
@@ -152,19 +177,7 @@
         "6740a1b2c3d4e5f6a7b8c9d4",
         "6740a1b2c3d4e5f6a7b8c9d5"
       ],
-      "created_at": {"$date": "2025-02-01T00:00:00Z"}
-    },
-    {
-      "_id": {"$oid": "6740a1b2c3d4e5f6a7b8ca03"},
-      "course_id": "6740a1b2c3d4e5f6a7b8c9f3",
-      "semester": "2025-1",
-      "class_code": "IT4010.01",
-      "teacher_id": "6740a1b2c3d4e5f6a7b8c9d2",
-      "student_ids": [
-        "6740a1b2c3d4e5f6a7b8c9d3",
-        "6740a1b2c3d4e5f6a7b8c9d4"
-      ],
-      "created_at": {"$date": "2025-02-01T00:00:00Z"}
+      "created_at": {"$date": "2024-08-01T00:00:00Z"}
     }
   ],
   "course_grades": [
@@ -172,71 +185,61 @@
       "_id": {"$oid": "6740a1b2c3d4e5f6a7b8cb00"},
       "course_class_id": "6740a1b2c3d4e5f6a7b8ca00",
       "student_id": "6740a1b2c3d4e5f6a7b8c9d3",
-      "midterm_score": 8.5,
+      "regular_score_1": 8.0,
+      "regular_score_2": 8.5,
       "final_score": 9.0,
-      "assignment_score": 8.0,
-      "total_score": 8.8,
+      "total_score": 8.7,
       "updated_at": {"$date": "2024-06-15T00:00:00Z"}
     },
     {
       "_id": {"$oid": "6740a1b2c3d4e5f6a7b8cb01"},
       "course_class_id": "6740a1b2c3d4e5f6a7b8ca00",
       "student_id": "6740a1b2c3d4e5f6a7b8c9d4",
-      "midterm_score": 7.0,
+      "regular_score_1": 7.0,
+      "regular_score_2": 7.5,
       "final_score": 8.0,
-      "assignment_score": 7.5,
-      "total_score": 7.7,
+      "total_score": 7.6,
       "updated_at": {"$date": "2024-06-15T00:00:00Z"}
     },
     {
       "_id": {"$oid": "6740a1b2c3d4e5f6a7b8cb02"},
       "course_class_id": "6740a1b2c3d4e5f6a7b8ca00",
       "student_id": "6740a1b2c3d4e5f6a7b8c9d5",
-      "midterm_score": 6.5,
-      "final_score": 7.0,
-      "assignment_score": 7.0,
-      "total_score": 6.9,
+      "regular_score_1": 6.5,
+      "regular_score_2": 7.0,
+      "final_score": 7.5,
+      "total_score": 7.1,
       "updated_at": {"$date": "2024-06-15T00:00:00Z"}
     },
     {
       "_id": {"$oid": "6740a1b2c3d4e5f6a7b8cb03"},
       "course_class_id": "6740a1b2c3d4e5f6a7b8ca01",
       "student_id": "6740a1b2c3d4e5f6a7b8c9d3",
-      "midterm_score": 9.0,
+      "regular_score_1": 9.0,
+      "regular_score_2": 9.0,
       "final_score": 9.5,
-      "assignment_score": 9.0,
-      "total_score": 9.3,
+      "total_score": 9.2,
       "updated_at": {"$date": "2024-06-15T00:00:00Z"}
     },
     {
       "_id": {"$oid": "6740a1b2c3d4e5f6a7b8cb04"},
       "course_class_id": "6740a1b2c3d4e5f6a7b8ca01",
       "student_id": "6740a1b2c3d4e5f6a7b8c9d4",
-      "midterm_score": 8.0,
+      "regular_score_1": 8.0,
+      "regular_score_2": 8.0,
       "final_score": 8.5,
-      "assignment_score": 8.0,
-      "total_score": 8.3,
+      "total_score": 8.2,
       "updated_at": {"$date": "2024-06-15T00:00:00Z"}
     },
     {
       "_id": {"$oid": "6740a1b2c3d4e5f6a7b8cb05"},
       "course_class_id": "6740a1b2c3d4e5f6a7b8ca02",
       "student_id": "6740a1b2c3d4e5f6a7b8c9d3",
-      "midterm_score": 9.0,
+      "regular_score_1": 9.0,
+      "regular_score_2": 9.5,
       "final_score": 9.5,
-      "assignment_score": 9.0,
-      "total_score": 9.3,
-      "updated_at": {"$date": "2025-06-15T00:00:00Z"}
-    },
-    {
-      "_id": {"$oid": "6740a1b2c3d4e5f6a7b8cb06"},
-      "course_class_id": "6740a1b2c3d4e5f6a7b8ca03",
-      "student_id": "6740a1b2c3d4e5f6a7b8c9d3",
-      "midterm_score": 8.5,
-      "final_score": 9.0,
-      "assignment_score": 8.5,
-      "total_score": 8.8,
-      "updated_at": {"$date": "2025-06-15T00:00:00Z"}
+      "total_score": 9.4,
+      "updated_at": {"$date": "2024-12-15T00:00:00Z"}
     }
   ],
   "semester_summaries": [
@@ -276,24 +279,13 @@
     {
       "_id": {"$oid": "6740a1b2c3d4e5f6a7b8cc03"},
       "student_id": "6740a1b2c3d4e5f6a7b8c9d3",
-      "semester": "2025-1",
+      "semester": "2024-2",
       "gpa": 3.9,
-      "credits_earned": 6,
-      "credits_passed": 6,
-      "tuition_debt": false,
-      "academic_warning": 0,
-      "updated_at": {"$date": "2025-06-20T00:00:00Z"}
-    },
-    {
-      "_id": {"$oid": "6740a1b2c3d4e5f6a7b8cc04"},
-      "student_id": "6740a1b2c3d4e5f6a7b8c9d4",
-      "semester": "2025-1",
-      "gpa": 3.5,
       "credits_earned": 3,
       "credits_passed": 3,
       "tuition_debt": false,
       "academic_warning": 0,
-      "updated_at": {"$date": "2025-06-20T00:00:00Z"}
+      "updated_at": {"$date": "2024-12-20T00:00:00Z"}
     }
   ],
   "posts": [
@@ -302,7 +294,7 @@
       "post_type": "ADMINISTRATIVE",
       "class_id": "6740a1b2c3d4e5f6a7b8c9e0",
       "author_id": "6740a1b2c3d4e5f6a7b8c9d1",
-      "content": "Thông báo: Họp phụ huynh vào ngày 25/11/2024. Mọi người nhớ tham gia đầy đủ.",
+      "content": "Thông báo: Họp phụ huynh vào ngày 25/12/2024. Mọi người nhớ tham gia đầy đủ.",
       "likes": [],
       "comments": [],
       "created_at": {"$date": "2024-11-15T10:00:00Z"},

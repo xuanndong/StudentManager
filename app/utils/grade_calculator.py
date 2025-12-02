@@ -2,25 +2,49 @@
 Utility functions for grade calculation
 """
 
-def calculate_total_score(midterm: float | None, final: float | None, assignment: float | None,
-                         midterm_weight: float = 0.3, final_weight: float = 0.5, 
-                         assignment_weight: float = 0.2) -> float | None:
+def calculate_total_score(
+    regular_1: float | None, 
+    regular_2: float | None, 
+    final: float | None,
+    regular_weight_1: float = 0.2, 
+    regular_weight_2: float = 0.3, 
+    final_weight: float = 0.5
+) -> float | None:
     """
     Tính điểm tổng kết theo công thức có trọng số
+    
+    Args:
+        regular_1: Điểm thường xuyên 1
+        regular_2: Điểm thường xuyên 2
+        final: Điểm cuối kỳ
+        regular_weight_1: Trọng số thường xuyên 1 (mặc định 20%)
+        regular_weight_2: Trọng số thường xuyên 2 (mặc định 30%)
+        final_weight: Trọng số cuối kỳ (mặc định 50%)
+    
+    Returns:
+        Điểm tổng kết (0-10) hoặc None nếu thiếu điểm cuối kỳ
     """
-    # Cần có ít nhất điểm giữa kỳ và cuối kỳ
-    if midterm is None or final is None:
+    # Cần có ít nhất điểm cuối kỳ
+    if final is None:
         return None
     
-    # Nếu không có điểm bài tập, phân bổ lại trọng số
-    if assignment is None:
-        total_weight = midterm_weight + final_weight
-        return round((midterm * midterm_weight + final * final_weight) / total_weight, 2)
+    # Nếu thiếu điểm thường xuyên, phân bổ lại trọng số
+    if regular_1 is None and regular_2 is None:
+        # Chỉ có điểm cuối kỳ
+        return round(final, 2)
+    elif regular_1 is None:
+        # Có regular_2 và final
+        total_weight = regular_weight_2 + final_weight
+        return round((regular_2 * regular_weight_2 + final * final_weight) / total_weight, 2)
+    elif regular_2 is None:
+        # Có regular_1 và final
+        total_weight = regular_weight_1 + final_weight
+        return round((regular_1 * regular_weight_1 + final * final_weight) / total_weight, 2)
     
     # Tính điểm đầy đủ
-    total = (midterm * midterm_weight + 
-             final * final_weight + 
-             assignment * assignment_weight)
+    total = (regular_1 * regular_weight_1 + 
+             regular_2 * regular_weight_2 + 
+             final * final_weight)
     
     return round(total, 2)
 

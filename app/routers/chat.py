@@ -15,7 +15,7 @@ router = APIRouter(prefix=os.getenv("API_V1_STR", "/api/v1"), tags=['Chat System
 
 # --- REST API (Quản lý hội thoại & Lịch sử) ---
 
-# Tạo cuộc hội thoại mới (hoặc lấy cái cũ nếu đã có)
+# Tạo cuộc hội thoại mới hoặc lấy cái cũ
 @router.get("/search-by-phone/{phone}")
 async def search_user_by_phone(
     phone: str,
@@ -163,7 +163,7 @@ async def get_messages(
     db: AsyncDatabase = request.app.state.db
     user_id = str(current_user["_id"])
 
-    # Kiểm tra quyền xem (phải là thành viên)
+    # Kiểm tra quyền (phải là thành viên)
     conv = await db.conversations.find_one({"_id": ObjectId(conversation_id)})
     if not conv or user_id not in conv["participants"]:
          raise HTTPException(status_code=403, detail="Access denied")

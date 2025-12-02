@@ -34,8 +34,8 @@ class PostResponse(PostBase):
     post_type: PostType
     class_id: str  # ID của AdministrativeClass hoặc CourseClass
     author_id: str
-    author_name: str | None = None  # Populated from users collection
-    author_role: str | None = None  # Populated from users collection
+    author_name: str | None = None
+    author_role: str | None = None
     likes: list[str] = []
     comments: list[CommentResponse] = []
     created_at: datetime
