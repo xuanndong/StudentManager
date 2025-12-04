@@ -1,8 +1,11 @@
 from fastapi import APIRouter, Depends, Request, status, HTTPException
 from pymongo.asynchronous.database import AsyncDatabase
 from bson import ObjectId
+from pydantic import BaseModel, EmailStr
+from typing import Optional
 from dotenv import load_dotenv
 import os
+import bcrypt
 
 from app.model.muser import UserResponse
 from app.dependencies import get_current_user, get_current_admin
@@ -11,6 +14,86 @@ from app.dependencies import get_current_user, get_current_admin
 load_dotenv()
 
 router = APIRouter(prefix=os.getenv("API_V1_STR","/api/v1") + "/users", tags=['Users'])
+
+
+# Pydantic model for creating user
+class UserCreate(BaseModel):
+    mssv: str
+    full_name: str
+    email: EmailStr
+    phone: Optional[str] = None
+    role: str  # STUDENT, TEACHER, CVHT, ADMIN
+    password: Optional[str] = None  # If None, use default
+    administrative_class_id: Optional[str] = None  # For STUDENT only
+
+
+@router.post("/", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
+async def create_user(
+    user_data: UserCreate,
+    request: Request,
+    current_user: dict = Depends(get_current_admin)
+):
+    """ADMIN tạo user mới"""
+    db: AsyncDatabase = request.app.state.db
+    
+    # Validate role
+    valid_roles = ["STUDENT", "TEACHER", "CVHT", "ADMIN"]
+    if user_data.role.upper() not in valid_roles:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Invalid role. Must be one of: {valid_roles}")
+    
+    # Check MSSV unique
+    existing_mssv = await db.users.find_one({"mssv": user_data.mssv})
+    if existing_mssv:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="MSSV already exists")
+    
+    # Check email unique
+    existing_email = await db.users.find_one({"email": user_data.email})
+    if existing_email:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Email already exists")
+    
+    # Hash password
+    password = user_data.password if user_data.password else f"{user_data.mssv}@123"
+    hashed_password = bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+    
+    # Create user document
+    new_user = {
+        "mssv": user_data.mssv,
+        "full_name": user_data.full_name,
+        "email": user_data.email,
+        "phone": user_data.phone,
+        "role": user_data.role.upper(),
+        "password": hashed_password,
+        "is_active": True
+    }
+    
+    # Insert user first
+    result = await db.users.insert_one(new_user)
+    user_id = str(result.inserted_id)
+    new_user["_id"] = user_id
+    
+    # Add to administrative class if provided and role is STUDENT
+    if user_data.role.upper() == "STUDENT" and user_data.administrative_class_id:
+        if ObjectId.is_valid(user_data.administrative_class_id):
+            # Verify class exists
+            class_obj = await db.administrative_classes.find_one({"_id": ObjectId(user_data.administrative_class_id)})
+            if class_obj:
+                # Update user with class_id
+                await db.users.update_one(
+                    {"_id": ObjectId(user_id)},
+                    {"$set": {"administrative_class_id": user_data.administrative_class_id}}
+                )
+                # Add student to class
+                await db.administrative_classes.update_one(
+                    {"_id": ObjectId(user_data.administrative_class_id)},
+                    {"$addToSet": {"student_ids": user_id}}
+                )
+                new_user["administrative_class_id"] = user_data.administrative_class_id
+    
+    # Return user without password
+    if "password" in new_user:
+        del new_user["password"]
+    
+    return new_user
 
 
 @router.get("/me", response_model=UserResponse)

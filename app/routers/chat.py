@@ -186,7 +186,7 @@ async def websocket_endpoint(websocket: WebSocket, user_id: str):
     # Chấp nhận kết nối
     await manager.connect(websocket, user_id)
     db: AsyncDatabase = websocket.app.state.db
-    
+
     try:
         while True:
             data = await websocket.receive_json()

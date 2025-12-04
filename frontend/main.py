@@ -60,5 +60,9 @@ class App(ctk.CTk):
             pass
 
 if __name__ == "__main__":
+    from config import setup_app_resources
+    setup_app_resources()
+
+    # Khởi chạy App
     app = App()
     app.mainloop()
