@@ -374,7 +374,6 @@ async def delete_post(
     is_admin = role == "ADMIN"
     is_class_manager = False
     
-    # Check if user is class manager
     if post["post_type"] == PostType.ADMINISTRATIVE:
         class_obj = await db.administrative_classes.find_one({"_id": ObjectId(post["class_id"])})
         is_class_manager = class_obj and class_obj["advisor_id"] == user_id

@@ -13,7 +13,7 @@ router = APIRouter(prefix=os.getenv("API_V1_STR", "/api/v1") + "/ai", tags=['AI 
 
 class ChatRequest(BaseModel):
     message: str
-    context: str | None = None  # Optional context about user (role, courses, etc.)
+    context: str | None = None
 
 
 class ChatResponse(BaseModel):

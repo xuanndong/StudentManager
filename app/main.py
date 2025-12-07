@@ -21,7 +21,6 @@ app = FastAPI(
     lifespan=lifespan,
     title=os.getenv("PROJECT_NAME", "QLSV - Student Management System"),
     version="2.1.0",
-    description="Clean architecture with Administrative Classes (CVHT) and Course Classes (Teacher)",
     redoc_url=None
 )
 
@@ -60,13 +59,11 @@ async def root():
     return {
         "message": "Student Management System API v2.1",
         "docs": "/docs",
-        "note": "Clean architecture with Administrative Classes and Course Classes"
     }
 
 
 @app.get("/api/v1/classes")
 async def deprecated_classes_endpoint():
-    """Endpoint deprecated - đã được thay thế bởi /api/v1/administrative-classes"""
     raise HTTPException(
         status_code=status.HTTP_410_GONE,
         detail={
